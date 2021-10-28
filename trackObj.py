@@ -1,15 +1,19 @@
 import cv2
 import numpy as np
-import imutils
-import matplotlib.pyplot as plt
+# import imutils
+# import matplotlib.pyplot as plt
 
 vid = cv2.VideoCapture(0)
 ret,frame=vid.read()
-l_b=np.array([30, 50, 50])
-u_b=np.array([45, 255, 255])
+l_b=np.array([25, 50, 50])
+u_b=np.array([50, 220, 220])
+record_path = False
+centroid_path=[]
+
 while ret==True:
+    key=cv2.waitKey(1)
     ret,frame=vid.read()
-    
+
     # get blobs with color frame
     hsv=cv2.cvtColor(frame,cv2.COLOR_BGR2HSV)
     mask=cv2.inRange(hsv,l_b,u_b)
@@ -34,10 +38,21 @@ while ret==True:
             cx=int(M['m10']//M['m00'])
             cy=int(M['m01']//M['m00'])
             cv2.circle(frame, (cx,cy),3,(255,0,0),-1)
-    
+        
+        # get path of centroids
+        if record_path and cv2.contourArea(contour)>15:
+            centroid_path.append((cx, cy))
+        for coordinate in centroid_path:
+            cv2.circle(frame, coordinate,3,(0,0,255),-1)
     cv2.imshow('frame',frame)
     cv2.imshow("mask",mask)
-    key=cv2.waitKey(1)
+
+    if key==ord('a'):
+        # start recording path
+        record_path = True
+    if key==ord('c'):
+        # clear path of centroids
+        centroid_path = []
     if key==ord('q'):
         break
 cv2.waitKey(0)

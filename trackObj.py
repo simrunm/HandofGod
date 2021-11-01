@@ -44,6 +44,13 @@ while ret==True:
             centroid_path.append((cx, cy))
         for coordinate in centroid_path:
             cv2.circle(frame, coordinate,3,(0,0,255),-1)
+        
+        # This needs fixing, connect path as lines instead of discrete pts
+        # for i in range(len(centroid_path)):
+        #     if centroid_path[i - 1] is None or centroid_path[i] is None:
+        #         continue
+        #     thickness = 1 # int(np.sqrt(args["buffer"] / float(i + 1)) * 2.5)
+        #     cv2.line(frame, centroid_path[i - 1], centroid_path[i], (0, 0, 255), thickness)
     cv2.imshow('frame',frame)
     cv2.imshow("mask",mask)
 

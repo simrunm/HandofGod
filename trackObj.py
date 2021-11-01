@@ -3,14 +3,14 @@ import numpy as np
 # import imutils
 # import matplotlib.pyplot as plt
 
-vid = cv2.VideoCapture(0)
-ret,frame=vid.read()
+vid = cv2.VideoCapture()
+vid.open(1, cv2.CAP_DSHOW)
 l_b=np.array([25, 50, 50])
 u_b=np.array([50, 220, 220])
 record_path = False
 centroid_path=[]
 
-while ret==True:
+while True:
     key=cv2.waitKey(1)
     ret,frame=vid.read()
 

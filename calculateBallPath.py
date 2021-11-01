@@ -18,7 +18,7 @@ def calc_parabola_vertex(x1, x2, x3, y1, y2, y3):
     return A,B,C
 
 def plot_parabola(a,b,c):
-    x_pos=np.arange(-30,30,1)
+    x_pos=np.arange(0,1000,1)
     y_pos=[]
 
     #Calculate y values 
@@ -37,6 +37,7 @@ def plot_parabola(a,b,c):
 
 params = [-0.1, 0.5, 1.2]
 x = np.linspace(-5, 5, 31)
+print(type(x))
 y = parabola(x, params[0], params[1], params[2])
 r = np.random.RandomState(42)
 y_with_errors = y + r.uniform(-1, 1, y.size)
@@ -46,7 +47,7 @@ fit_params, pcov = scipy.optimize.curve_fit(parabola, x, y_with_errors)
 y_fit = parabola(x, *fit_params)
 plt.plot(x, y_with_errors, label='sample')
 plt.plot(x, y_fit, label='fit')
-plt.show()
-x1, x2, x3, y1, y2, y3 = x[0], x[len(x)//2], x[len(x) - 1], y[0], y[len(x)//2], y[len(x) - 1]
+# plt.show()
+x1, x2, x3, y1, y2, y3 = x[0], x[len(x)//2], x[len(x) - 1], y_fit[0], y_fit[len(x)//2], y_fit[len(x) - 1]
 a,b,c = calc_parabola_vertex(x1, x2, x3, y1, y2, y3)
 plot_parabola(a,b,c)

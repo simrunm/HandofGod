@@ -1,5 +1,7 @@
 import cv2
 import numpy as np
+from calculateBallPath import plot_parabola
+from calculateBallPath import calc_parabola_vertex
 # import imutils
 # import matplotlib.pyplot as plt
 
@@ -60,6 +62,9 @@ while True:
     if key==ord('c'):
         # clear path of centroids
         centroid_path = []
+    if key==ord('p'):
+        # plot parabolic path
+        pass
     if key==ord('q'):
         break
 cv2.waitKey(0)

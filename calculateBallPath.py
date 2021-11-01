@@ -1,7 +1,7 @@
 import scipy.optimize
 import numpy as np
 import matplotlib.pyplot as plt
-from calculateBallPath2 import calc_parabola_vertex
+
 
 def parabola(x, a, b, c):
     return a*x**2 + b*x + c

@@ -1,10 +1,9 @@
 import cv2
 import numpy as np
+# from scipy._lib.six import X
 import calculateBallPath # import plot_parabola
-
 import scipy.optimize
 import matplotlib.pyplot as plt
-
 
 vid = cv2.VideoCapture()
 vid.open(1, cv2.CAP_DSHOW)
@@ -17,23 +16,28 @@ show_parabola_fit = False
 do_parabola_fit = False
 centroid_x=[]
 centroid_y=[]
+calibration_ratio = 62/64
 
 
 if vid.isOpened(): 
     # get vcap property 
     width  = vid.get(cv2.CAP_PROP_FRAME_WIDTH)   # float `width`
     height = vid.get(cv2.CAP_PROP_FRAME_HEIGHT)  # float `height`
-    # print("width: ", width, ", height: ", height)
+    print("width: ", width, ", height: ", height)
+    # width 640 cooresponds to 62 cms at a distance of 62 cms. at a distance of 30.5 cm, a widt of 
+    # 640 corresponds to 31.5 cm 
 
 
 while True:
     key=cv2.waitKey(1)
-    ret,frame=vid.read()
-
+    ret,frame=vid.read()    
+ 
     # get blobs with color frame
     hsv=cv2.cvtColor(frame,cv2.COLOR_BGR2HSV)
     mask=cv2.inRange(hsv,l_b,u_b)
     contours,_= cv2.findContours(mask,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
+
+
 
     if len(contours) > 0:
         # find largest blob
@@ -75,8 +79,11 @@ while True:
         
     if (show_parabola_fit):
         for i in range(len(x_pos)):
-            if 450 < y_pos[i] < 460:
+            if 455 < y_pos[i] < 460:
                 cv2.circle(frame, (int(x_pos[i]), int(y_pos[i])),2,(255,0,0),-1)
+                # do math to convert frame x -> real life x
+                print("x-coordinate: ", x_pos[i])
+                # print("real life pose: ", x_pos[i]*calibration_ratio)
             else:
                 cv2.circle(frame, (int(x_pos[i]), int(y_pos[i])),2,(0,255,0),-1)
 
@@ -101,6 +108,10 @@ while True:
         x1, x2, x3, y1, y2, y3 = centroid_x[0], centroid_x[length_centroid//2], centroid_x[length_centroid - 1], y_fit[0], y_fit[length_centroid//2], y_fit[length_centroid - 1]
         a,b,c = calculateBallPath.calc_parabola_vertex(x1, x2, x3, y1, y2, y3)
         x,y = calculateBallPath.find_parabola(a,b,c)
+    if key == ord('b'):
+        isReady = input("Are you ready?")
+        if isReady:
+            isReady = True
     # if key == ord('o'):
     #     centroid_x = [609, 588, 562, 536, 509, 482, 454, 428, 396, 373, 240]
     #     centroid_y = [129, 110, 95, 87, 85, 90, 102, 122, 154, 185, 441]

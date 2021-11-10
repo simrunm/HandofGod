@@ -1,7 +1,7 @@
 import cv2
 import numpy as np
-# from scipy._lib.six import X
-import calculateBallPath # import plot_parabola
+import trackingFunctions
+import calculateBallPath
 import scipy.optimize
 import matplotlib.pyplot as plt
 
@@ -11,12 +11,18 @@ vid.open(1, cv2.CAP_DSHOW)
 # u_b=np.array([50, 220, 220])
 l_b=np.array([27, 130, 130])
 u_b=np.array([50, 220, 220])
+l_b_tape=np.array([15, 130, 130])
+u_b_tape=np.array([25, 220, 220])
 record_path = False
 show_parabola_fit = False
 do_parabola_fit = False
+find_tape = False
+real_dist = 476
 centroid_x=[]
 centroid_y=[]
-calibration_ratio = 62/64
+tape_x = []
+tape_y = []
+calibration_ratio = 0
 
 
 if vid.isOpened(): 
@@ -27,44 +33,33 @@ if vid.isOpened():
     # width 640 cooresponds to 62 cms at a distance of 62 cms. at a distance of 30.5 cm, a widt of 
     # 640 corresponds to 31.5 cm 
 
-
 while True:
     key=cv2.waitKey(1)
-    ret,frame=vid.read()    
+    ret,frame=vid.read()
+    if find_tape:
+        x, y, w, h, mask = trackingFunctions.get_color_blob(frame, l_b_tape, u_b_tape, 5)
+        tape_x.append(x)
+        tape_y.append(y)
+        if len(tape_x) > 0:
+            for i in range(len(tape_x)):
+                cv2.circle(frame, (tape_x[i], tape_y[i]),3,(255,0,255),-1) # purple?
+                cv2.rectangle(frame,(x,y),(x+w,y+h),(0,255,0),4)
+        if len(tape_x) == 2:
+            frame_dist = tape_x[1] - tape_x[0]
+            print(tape_x[1], " and ", tape_x[0])
+            print("distance ", frame_dist)
+            calibration_ratio = real_dist/frame_dist
  
+    # cv2.imshow('frame',frame)
+
     # get blobs with color frame
-    hsv=cv2.cvtColor(frame,cv2.COLOR_BGR2HSV)
-    mask=cv2.inRange(hsv,l_b,u_b)
-    contours,_= cv2.findContours(mask,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
-
-
-
-    if len(contours) > 0:
-        # find largest blob
-        max_contour = contours[0]
-        for contour in contours:
-            if cv2.contourArea(contour)>cv2.contourArea(max_contour):
-                max_contour=contour
-        contour=max_contour
-
-        if cv2.contourArea(contour) > 5:
-            # get bounding box
-            approx=cv2.approxPolyDP(contour, 0.01*cv2.arcLength(contour,True),True)
-            x,y,w,h=cv2.boundingRect(approx)
+    x, y, w, h, mask = trackingFunctions.get_color_blob(frame, l_b, u_b, 5)
+    centroid_x.append(x)
+    centroid_y.append(y)
+    if len(centroid_x) > 0:
+        for i in range(len(centroid_x)):
+            cv2.circle(frame, (centroid_x[i], centroid_y[i]),3,(0,0,255),-1) #red
             cv2.rectangle(frame,(x,y),(x+w,y+h),(0,255,0),4)
-
-            # get centroid
-            M=cv2.moments(contour)
-            cx=int(M['m10']//M['m00'])
-            cy=int(M['m01']//M['m00'])
-            cv2.circle(frame, (cx,cy),3,(255,0,0),-1)
-        
-        # get path of centroids
-        if record_path and cv2.contourArea(contour)>15:
-            centroid_x.append(cx)
-            centroid_y.append(cy)
-    for i in range(len(centroid_x)):
-        cv2.circle(frame, (centroid_x[i], centroid_y[i]),3,(0,0,255),-1)
     
     if (do_parabola_fit):
         if len(centroid_x) >=3:
@@ -91,6 +86,9 @@ while True:
         # start recording path
         record_path = True
         do_parabola_fit = True
+
+    if key == ord('t'):
+        find_tape = True
 
     if key==ord('c'):
         # clear path of centroids
@@ -131,5 +129,3 @@ while True:
     cv2.imshow("mask",mask)
 cv2.waitKey(0)
 cv2.destroyAllWindows()
-
-

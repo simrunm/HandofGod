@@ -11,13 +11,13 @@ vid.open(1, cv2.CAP_DSHOW)
 # u_b=np.array([50, 220, 220])
 l_b=np.array([27, 130, 130])
 u_b=np.array([50, 220, 220])
-l_b_tape=np.array([15, 130, 130])
-u_b_tape=np.array([25, 220, 220])
+l_b_tape=np.array([150, 130, 130])
+u_b_tape=np.array([180, 220, 220])
 record_path = False
 show_parabola_fit = False
 do_parabola_fit = False
 find_tape = False
-real_dist = 476
+real_dist = 600
 centroid_x=[]
 centroid_y=[]
 tape_x = []
@@ -37,39 +37,36 @@ while True:
     key=cv2.waitKey(1)
     ret,frame=vid.read()
     if find_tape:
-        x, y, w, h, mask = trackingFunctions.get_color_blob(frame, l_b_tape, u_b_tape, 5)
-        tape_x.append(x)
-        tape_y.append(y)
-        if len(tape_x) > 0:
-            for i in range(len(tape_x)):
-                cv2.circle(frame, (tape_x[i], tape_y[i]),3,(255,0,255),-1) # purple?
-                cv2.rectangle(frame,(x,y),(x+w,y+h),(0,255,0),4)
-        if len(tape_x) == 2:
-            frame_dist = tape_x[1] - tape_x[0]
-            print(tape_x[1], " and ", tape_x[0])
-            print("distance ", frame_dist)
+        frame_dist = trackingFunctions.get_tape_blob(frame, l_b_tape, u_b_tape, 5)
+        if frame_dist != 0:
             calibration_ratio = real_dist/frame_dist
+            print("calibration ratio: ", calibration_ratio)
+            print("frame_dist: ", frame_dist)
+            find_tape = False
  
     # cv2.imshow('frame',frame)
 
     # get blobs with color frame
-    x, y, w, h, mask = trackingFunctions.get_color_blob(frame, l_b, u_b, 5)
-    centroid_x.append(x)
-    centroid_y.append(y)
+    x, y, w, h, mask_ball = trackingFunctions.get_color_blob(frame, l_b, u_b, 5)
+    if x != 0 and y != 0 and w != 0 and h != 0:
+        centroid_x.append(x)
+        centroid_y.append(y)
     if len(centroid_x) > 0:
         for i in range(len(centroid_x)):
             cv2.circle(frame, (centroid_x[i], centroid_y[i]),3,(0,0,255),-1) #red
-            cv2.rectangle(frame,(x,y),(x+w,y+h),(0,255,0),4)
-    
-    if (do_parabola_fit):
+            cv2.rectangle(frame,(x,y),(x+w,y+h),(0,255,0),4)  
+
+    if (do_parabola_fit):     
         if len(centroid_x) >=3:
             x_list = np.array(centroid_x); y_list = np.array(centroid_y)
             fit_params, pcov = scipy.optimize.curve_fit(calculateBallPath.parabola, x_list,y_list)
             y_fit = calculateBallPath.parabola(x_list, *fit_params)
             length_centroid = len(x_list//2)
             x1, x2, x3, y1, y2, y3 = x_list[0], x_list[length_centroid//2], x_list[length_centroid - 1], y_fit[0], y_fit[length_centroid//2], y_fit[length_centroid - 1]
-            a,b,c = calculateBallPath.calc_parabola_vertex(x1, x2, x3, y1, y2, y3)
-            [x_pos,y_pos] = calculateBallPath.find_parabola(a,b,c)       
+            a,b,c = calculateBallPath.calc_parabola_vertex(x1, x2, x3, y1, y2, y3)            
+            [x_pos,y_pos] = calculateBallPath.find_parabola(a,b,c)
+            # print(x_pos)
+            # print(y_pos)       
             show_parabola_fit = True
         
     if (show_parabola_fit):
@@ -78,8 +75,8 @@ while True:
                 cv2.circle(frame, (int(x_pos[i]), int(y_pos[i])),2,(255,0,0),-1)
                 # do math to convert frame x -> real life x
                 print("x-coordinate: ", x_pos[i])
-                # print("real life pose: ", x_pos[i]*calibration_ratio)
-            else:
+                print("real life pose: ", x_pos[i]*calibration_ratio)
+            else:            
                 cv2.circle(frame, (int(x_pos[i]), int(y_pos[i])),2,(0,255,0),-1)
 
     if key==ord('a'):
@@ -94,6 +91,8 @@ while True:
         # clear path of centroids
         centroid_x = []
         centroid_y = []
+        tape_x = []
+        tape_y = []
         show_parabola_fit = False
     if key==ord('p'):
         # plot parabolic path
@@ -126,6 +125,6 @@ while True:
         break
 
     cv2.imshow('frame',frame)
-    cv2.imshow("mask",mask)
+    cv2.imshow("mask_ball",mask_ball)
 cv2.waitKey(0)
 cv2.destroyAllWindows()

@@ -37,7 +37,7 @@ while True:
     key=cv2.waitKey(1)
     ret,frame=vid.read()
     if find_tape:
-        frame_dist = trackingFunctions.get_tape_blob(frame, l_b_tape, u_b_tape, 5)
+        frame_dist,y_val = trackingFunctions.get_tape_blob(frame, l_b_tape, u_b_tape, 5)
         if frame_dist != 0:
             calibration_ratio = real_dist/frame_dist
             print("calibration ratio: ", calibration_ratio)
@@ -71,11 +71,12 @@ while True:
         
     if (show_parabola_fit):
         for i in range(len(x_pos)):
-            if 455 < y_pos[i] < 460:
+            if y_val - 5 < y_pos[i] < y_val + 5:
                 cv2.circle(frame, (int(x_pos[i]), int(y_pos[i])),2,(255,0,0),-1)
                 # do math to convert frame x -> real life x
                 print("x-coordinate: ", x_pos[i])
-                print("real life pose: ", x_pos[i]*calibration_ratio)
+                real_x = x_pos[i]*calibration_ratio
+                # print("real life pose: ", x_pos[i]*calibration_ratio)
             else:            
                 cv2.circle(frame, (int(x_pos[i]), int(y_pos[i])),2,(0,255,0),-1)
 
@@ -109,17 +110,6 @@ while True:
         isReady = input("Are you ready?")
         if isReady:
             isReady = True
-    # if key == ord('o'):
-    #     centroid_x = [609, 588, 562, 536, 509, 482, 454, 428, 396, 373, 240]
-    #     centroid_y = [129, 110, 95, 87, 85, 90, 102, 122, 154, 185, 441]
-    #     centroid_x = np.array(centroid_x); centroid_y = np.array(centroid_y)
-    #     fit_params, pcov = scipy.optimize.curve_fit(calculateBallPath.parabola, centroid_x,centroid_y)
-    #     y_fit = calculateBallPath.parabola(centroid_x, *fit_params)
-    #     length_centroid = len(centroid_x//2)
-    #     x1, x2, x3, y1, y2, y3 = centroid_x[0], centroid_x[length_centroid//2], centroid_x[length_centroid - 1], y_fit[0], y_fit[length_centroid//2], y_fit[length_centroid - 1]
-    #     a,b,c = calculateBallPath.calc_parabola_vertex(x1, x2, x3, y1, y2, y3)
-    #     [x_pos,y_pos] = calculateBallPath.find_parabola(a,b,c)       
-    #     show_parabola_fit = True
 
     if key==ord('q'):
         break

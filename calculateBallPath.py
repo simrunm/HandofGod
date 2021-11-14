@@ -5,6 +5,9 @@ import matplotlib.pyplot as plt
 def parabola(x, a, b, c):
     return a*x**2 + b*x + c
 
+def linear(x, a, b):
+    return a*x + b
+
 def calc_parabola_vertex(x1, x2, x3, y1, y2, y3):
     '''
     Adapted and modifed to get the unknowns for defining a parabola:
@@ -17,6 +20,15 @@ def calc_parabola_vertex(x1, x2, x3, y1, y2, y3):
     C = (x2 * x3 * (x2-x3) * y1+x3 * x1 * (x3-x1) * y2+x1 * x2 * (x1-x2) * y3) / denom;
     return A,B,C
 
+def calc_linear_line(x1, x2, y1, y2):
+    """https://moonbooks.org/Articles/
+    How-to-calculate-the-slope-and-the-intercept
+    -of-a-straight-line-with-python-/"""
+    m = (y2 - y1) / (x2 - x1)
+    b = y1 - m * x1     
+    return m,b
+
+
 def find_parabola(a,b,c):
     x_pos=np.arange(0,1000,1)
     y_pos=[]
@@ -25,6 +37,17 @@ def find_parabola(a,b,c):
     for x in range(len(x_pos)):
         x_val=x_pos[x]
         y=(a*(x_val**2))+(b*x_val)+c
+        y_pos.append(y)
+    return [x_pos,y_pos]
+
+def find_line(m,b):
+    x_pos=np.arange(0,1000,1)
+    y_pos=[]
+
+    #Calculate y values 
+    for x in range(len(x_pos)):
+        x_val=x_pos[x]
+        y=m*x_val+b
         y_pos.append(y)
     return [x_pos,y_pos]
 

@@ -67,3 +67,8 @@ def finding_theta(x_vert, y_vert,m,b,int_line):
     theta = np.arctan(x_dist/y_dist)
     return math.degrees(theta)
 
+def find_x_and_y(theta, a):
+    x = a*np.sin(theta)
+    y = a*np.cos(theta)
+    return x,y
+

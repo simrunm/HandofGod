@@ -4,11 +4,12 @@ import trackingFunctions
 import calculateBallPath
 import scipy.optimize
 import matplotlib.pyplot as plt
+import serial
 
 sideview = cv2.VideoCapture()
 sideview.open(1, cv2.CAP_DSHOW)
 topview = cv2.VideoCapture()
-topview.open(0, cv2.CAP_DSHOW)
+topview.open(2, cv2.CAP_DSHOW)
 # l_b=np.array([25, 50, 50]) # for mac
 # u_b=np.array([50, 220, 220])
 l_b=np.array([27, 130, 130])
@@ -16,13 +17,15 @@ u_b=np.array([50, 220, 220])
 l_b_tape=np.array([150, 130, 130])
 u_b_tape=np.array([180, 220, 220])
 record_path = False
-show_fit = False
+found_distance = False
+show_top_fit = False
+show_side_fit = False
 do_fit = False
 show_linear_fit = False
 show_vertical_line = False
 find_theta = False
 find_tape = False
-real_dist = 600
+real_dist = 704.85
 sideview_centroid_x=[]
 sideview_centroid_y=[]
 topview_centroid_x=[]
@@ -30,6 +33,7 @@ topview_centroid_y=[]
 tape_x = []
 tape_y = []
 calibration_ratio = 0
+# megaBoard = serial.Serial('COM7', 9600)
 
 if sideview.isOpened():
     width  = sideview.get(cv2.CAP_PROP_FRAME_WIDTH)   # float `width`
@@ -80,6 +84,7 @@ while True:
             x1, x2, x3, y1, y2, y3 = x_list[0], x_list[length_centroid//2], x_list[length_centroid - 1], y_fit[0], y_fit[length_centroid//2], y_fit[length_centroid - 1]
             a,b,c = calculateBallPath.calc_parabola_vertex(x1, x2, x3, y1, y2, y3)            
             [sideview_xpos,sideview_ypos] = calculateBallPath.find_parabola(a,b,c)
+            show_side_fit = True
         
         # topview
         if len(topview_centroid_x) == 1:
@@ -89,17 +94,19 @@ while True:
             x1, x2, y1, y2 = topview_centroid_x[0], topview_centroid_x[-1], topview_centroid_y[0], topview_centroid_y[-1]
             m,b = calculateBallPath.calc_linear_line(x1, x2, y1, y2)            
             [topview_xpos,topview_ypos] = calculateBallPath.find_line(m,b)     
-            show_fit = True
+            show_top_fit = True
         
-    if (show_fit):
+    if (show_top_fit & show_side_fit):
         # sideview
         for i in range(len(sideview_xpos)):
             if y_val - 5 < sideview_ypos[i] < y_val + 5:
                 cv2.circle(sideview_frame, (int(sideview_xpos[i]), int(sideview_ypos[i])),2,(255,0,0),-1)
                 # do math to convert sideview_frame x -> real life x
                 print("x-coordinate: ", sideview_xpos[i])
-                real_x = sideview_xpos[i]*calibration_ratio
+                side_x = sideview_xpos[i]
+                real_side_x = sideview_xpos[i]*calibration_ratio # the side coordinate converted into real distances
                 # print("real life pose: ", sideview_xpos[i]*calibration_ratio)
+                found_distance = True
             else:            
                 cv2.circle(sideview_frame, (int(sideview_xpos[i]), int(sideview_ypos[i])),2,(0,255,0),-1)
         # topview
@@ -110,13 +117,16 @@ while True:
         for i in range(int(height)):
             cv2.circle(topview_frame, (int(vert_x), i),2,(0,255,255),-1)
     if(find_theta):
-        theta = trackingFunctions.finding_theta(vert_x,3*height/4,m,b,topview_centroid_y[0]) # centroid_y[0] is the intersection of the two lines       
-        # print(theta)
+        theta = trackingFunctions.finding_theta(vert_x,3*height/4,m,b,topview_centroid_y[0]) # centroid_y[0] is the intersection of the two lines  
+        if(found_distance): # if program has determined target x and y
+            top_x = trackingFunctions.find_x(theta, real_side_x) # top x is x and side x is y from drawing      
+            # megaBoard.write(b'top_x')
+            print("x: ", top_x, "y: ", real_side_x)
 
     if key==ord('a'):
         # start recording path
         record_path = True
-        do_parabola_fit = True
+        do_fit = True
     if key == ord('t'):
         find_tape = True
     if key==ord('c'):
@@ -125,18 +135,12 @@ while True:
         sideview_centroid_y = []
         tape_x = []
         tape_y = []
-        show_parabola_fit = False
-    if key==ord('p'):
-        # plot parabolic path
-        print("sideview_centroid_x: ", sideview_centroid_x)
-        print("sideview_centroid_y: ", sideview_centroid_y)
-        sideview_centroid_x = np.array(sideview_centroid_x); sideview_centroid_y = np.array(sideview_centroid_y)
-        fit_params, pcov = scipy.optimize.curve_fit(calculateBallPath.parabola, sideview_centroid_x,sideview_centroid_y)
-        y_fit = calculateBallPath.parabola(sideview_centroid_x, *fit_params)
-        length_centroid = len(sideview_centroid_x//2)
-        x1, x2, x3, y1, y2, y3 = sideview_centroid_x[0], sideview_centroid_x[length_centroid//2], sideview_centroid_x[length_centroid - 1], y_fit[0], y_fit[length_centroid//2], y_fit[length_centroid - 1]
-        a,b,c = calculateBallPath.calc_parabola_vertex(x1, x2, x3, y1, y2, y3)
-        x,y = calculateBallPath.find_parabola(a,b,c)
+        topview_centroid_x = []
+        topview_centroid_y = []
+        show_top_fit = False
+        find_theta = False
+        show_vertical_line = False
+
     if key == ord('b'):
         isReady = input("Are you ready?")
         if isReady:

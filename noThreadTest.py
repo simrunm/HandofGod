@@ -25,7 +25,7 @@ show_linear_fit = False
 show_vertical_line = False
 find_theta = False
 find_tape = False
-real_dist = 704.85
+real_dist = 304.8
 sideview_centroid_x=[]
 sideview_centroid_y=[]
 topview_centroid_x=[]
@@ -33,7 +33,7 @@ topview_centroid_y=[]
 tape_x = []
 tape_y = []
 calibration_ratio = 0
-# megaBoard = serial.Serial('COM7', 9600)
+megaBoard = serial.Serial('COM7', 9600)
 
 if sideview.isOpened():
     width  = sideview.get(cv2.CAP_PROP_FRAME_WIDTH)   # float `width`
@@ -102,7 +102,7 @@ while True:
             if y_val - 5 < sideview_ypos[i] < y_val + 5:
                 cv2.circle(sideview_frame, (int(sideview_xpos[i]), int(sideview_ypos[i])),2,(255,0,0),-1)
                 # do math to convert sideview_frame x -> real life x
-                print("x-coordinate: ", sideview_xpos[i])
+                # print("x-coordinate: ", sideview_xpos[i])
                 side_x = sideview_xpos[i]
                 real_side_x = sideview_xpos[i]*calibration_ratio # the side coordinate converted into real distances
                 # print("real life pose: ", sideview_xpos[i]*calibration_ratio)
@@ -120,7 +120,10 @@ while True:
         theta = trackingFunctions.finding_theta(vert_x,3*height/4,m,b,topview_centroid_y[0]) # centroid_y[0] is the intersection of the two lines  
         if(found_distance): # if program has determined target x and y
             top_x = trackingFunctions.find_x(theta, real_side_x) # top x is x and side x is y from drawing      
-            # megaBoard.write(b'top_x')
+            megaBoard.write(b'top_x')
+            megaBoard.write(b',')
+            megaBoard.write(b'real_side_x')
+            megaBoard.write(b'\n')
             print("x: ", top_x, "y: ", real_side_x)
 
     if key==ord('a'):

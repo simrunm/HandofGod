@@ -3,7 +3,7 @@ import numpy as np
 import math
 
 def get_color_blob(frame, lower_bound, upper_bound, blob_min_size):
-    x, y, w, h = 0,0,0,0
+    cx, cy, w, h = 0,0,0,0
     hsv=cv2.cvtColor(frame,cv2.COLOR_BGR2HSV)
     mask=cv2.inRange(hsv,lower_bound,upper_bound) 
     contours,_= cv2.findContours(mask,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
@@ -25,12 +25,13 @@ def get_color_blob(frame, lower_bound, upper_bound, blob_min_size):
             cx=int(M['m10']//M['m00'])
             cy=int(M['m01']//M['m00'])
             # cv2.circle(frame, (cx,cy),3,(255,0,0),-1)
-        return x, y, w, h, mask
-    return x, y, w, h, mask
+        return cx, cy, w, h, mask
+    return cx, cy, w, h, mask
 
 def get_tape_blob(frame, lower_bound, upper_bound, blob_min_size):
     x_vals = []
     y_vals = []
+    y_val = 0
     frame_dist = 0
     hsv=cv2.cvtColor(frame,cv2.COLOR_BGR2HSV)
     mask=cv2.inRange(hsv,lower_bound,upper_bound) 
@@ -66,4 +67,8 @@ def finding_theta(x_vert, y_vert,m,b,int_line):
     x_dist = abs(x_vert - x)
     theta = np.arctan(x_dist/y_dist)
     return math.degrees(theta)
+
+def find_x(theta, y):
+    x = y*np.tan(theta)
+    return x
 

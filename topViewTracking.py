@@ -26,7 +26,6 @@ tape_x = []
 tape_y = []
 calibration_ratio = 0
 
-
 if vid.isOpened(): 
     # get vcap property 
     width  = vid.get(cv2.CAP_PROP_FRAME_WIDTH)   # float `width`
@@ -45,8 +44,6 @@ while True:
             print("calibration ratio: ", calibration_ratio)
             print("frame_dist: ", frame_dist)
             find_tape = False
- 
-    # cv2.imshow('frame',frame)
 
     # get blobs with color frame
     x, y, w, h, mask_ball = trackingFunctions.get_color_blob(frame, l_b, u_b, 5)

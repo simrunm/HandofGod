@@ -10,8 +10,6 @@ sideview = cv2.VideoCapture()
 sideview.open(1, cv2.CAP_DSHOW)
 topview = cv2.VideoCapture()
 topview.open(2, cv2.CAP_DSHOW)
-# l_b=np.array([25, 50, 50]) # for mac
-# u_b=np.array([50, 220, 220])
 l_b=np.array([27, 130, 130])
 u_b=np.array([50, 220, 220])
 l_b_tape=np.array([150, 130, 130])

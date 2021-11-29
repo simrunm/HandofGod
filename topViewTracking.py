@@ -9,8 +9,8 @@ vid = cv2.VideoCapture()
 vid.open(1, cv2.CAP_DSHOW)
 # l_b=np.array([25, 50, 50]) # for mac
 # u_b=np.array([50, 220, 220])
-l_b=np.array([27, 130, 130])
-u_b=np.array([50, 220, 220])
+l_b=np.array([40, 130, 130])
+u_b=np.array([80, 220, 220])
 l_b_tape=np.array([150, 130, 130])
 u_b_tape=np.array([180, 220, 220])
 record_path = False

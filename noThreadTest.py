@@ -10,8 +10,10 @@ sideview = cv2.VideoCapture()
 sideview.open(1, cv2.CAP_DSHOW)
 topview = cv2.VideoCapture()
 topview.open(2, cv2.CAP_DSHOW)
-l_b=np.array([27, 130, 130])
-u_b=np.array([50, 220, 220])
+l_b_side=np.array([35, 110, 110])
+u_b_side=np.array([80, 220, 220])
+l_b_top=np.array([35, 70, 70])
+u_b_top=np.array([80, 220, 220])
 l_b_tape=np.array([150, 130, 130])
 u_b_tape=np.array([180, 220, 220])
 record_path = False
@@ -21,9 +23,9 @@ show_side_fit = False
 do_fit = False
 show_linear_fit = False
 show_vertical_line = False
+show_horizantal_line = False
 find_theta = False
-find_tape = False
-real_dist = 304.8
+real_dist = 610
 sideview_centroid_x=[]
 sideview_centroid_y=[]
 topview_centroid_x=[]
@@ -31,7 +33,8 @@ topview_centroid_y=[]
 tape_x = []
 tape_y = []
 calibration_ratio = 0
-megaBoard = serial.Serial('COM7', 9600)
+cam_dist = 10 # measure adn change this
+# megaBoard = serial.Serial('COM7', 9600)
 
 if sideview.isOpened():
     width  = sideview.get(cv2.CAP_PROP_FRAME_WIDTH)   # float `width`
@@ -44,16 +47,9 @@ while True:
     key=cv2.waitKey(1)
     ret,sideview_frame=sideview.read()
     ret,topview_frame=topview.read()
-    if find_tape:
-        sideview_frame_dist,y_val = trackingFunctions.get_tape_blob(sideview_frame, l_b_tape, u_b_tape, 5)
-        if sideview_frame_dist != 0:
-            calibration_ratio = real_dist/sideview_frame_dist
-            print("calibration ratio: ", calibration_ratio)
-            print("sideview_frame_dist: ", sideview_frame_dist)
-            find_tape = False
 
     # get blobs with color sideview_frame
-    x, y, w, h, sideview_mask_ball = trackingFunctions.get_color_blob(sideview_frame, l_b, u_b, 5)
+    x, y, w, h, sideview_mask_ball = trackingFunctions.get_color_blob(sideview_frame, l_b_side, u_b_side, 5)
     if x != 0 and y != 0 and w != 0 and h != 0:
         sideview_centroid_x.append(x)
         sideview_centroid_y.append(y)
@@ -63,7 +59,7 @@ while True:
             cv2.rectangle(sideview_frame,(x,y),(x+w,y+h),(0,255,0),4)  
 
     # get blobs with color topview_frame
-    x, y, w, h, topview_mask_ball = trackingFunctions.get_color_blob(topview_frame, l_b, u_b, 5)
+    x, y, w, h, topview_mask_ball = trackingFunctions.get_color_blob(topview_frame, l_b_top, u_b_top, 5)
     if x != 0 and y != 0 and w != 0 and h != 0:
         topview_centroid_x.append(x)
         topview_centroid_y.append(y)
@@ -88,13 +84,15 @@ while True:
         if len(topview_centroid_x) == 1:
             vert_x = topview_centroid_x[0]
             show_vertical_line = True
+            show_horizantal_line = True
         if len(topview_centroid_x) >= 2:
             x1, x2, y1, y2 = topview_centroid_x[0], topview_centroid_x[-1], topview_centroid_y[0], topview_centroid_y[-1]
             m,b = calculateBallPath.calc_linear_line(x1, x2, y1, y2)            
             [topview_xpos,topview_ypos] = calculateBallPath.find_line(m,b)     
             show_top_fit = True
         
-    if (show_top_fit & show_side_fit):
+    # if (show_top_fit & show_side_fit):
+    if (show_side_fit):
         # sideview
         for i in range(len(sideview_xpos)):
             if y_val - 5 < sideview_ypos[i] < y_val + 5:
@@ -103,49 +101,51 @@ while True:
                 # print("x-coordinate: ", sideview_xpos[i])
                 side_x = sideview_xpos[i]
                 real_side_x = sideview_xpos[i]*calibration_ratio # the side coordinate converted into real distances
-                # print("real life pose: ", sideview_xpos[i]*calibration_ratio)
-                found_distance = True
+                print("side x real distance: ", real_side_x)
+                # found_distance = True
             else:            
                 cv2.circle(sideview_frame, (int(sideview_xpos[i]), int(sideview_ypos[i])),2,(0,255,0),-1)
         # topview
-        for i in range(len(topview_xpos)):          
-            cv2.circle(topview_frame, (int(topview_xpos[i]), int(topview_ypos[i])),2,(0,255,0),-1)
-            find_theta = True
-    if (show_vertical_line):        
-        for i in range(int(height)):
-            cv2.circle(topview_frame, (int(vert_x), i),2,(0,255,255),-1)
-    if(find_theta):
-        theta = trackingFunctions.finding_theta(vert_x,3*height/4,m,b,topview_centroid_y[0]) # centroid_y[0] is the intersection of the two lines  
-        if(found_distance): # if program has determined target x and y
-            top_x = trackingFunctions.find_x(theta, real_side_x) # top x is x and side x is y from drawing      
-            megaBoard.write(b'top_x')
-            megaBoard.write(b',')
-            megaBoard.write(b'real_side_x')
-            megaBoard.write(b'\n')
-            print("x: ", top_x, "y: ", real_side_x)
+        # for i in range(len(topview_xpos)):          
+        #     cv2.circle(topview_frame, (int(topview_xpos[i]), int(topview_ypos[i])),2,(0,255,0),-1)
+        #     find_theta = True
+    # if (show_vertical_line):        
+    #     for i in range(int(height)):
+    #         cv2.circle(topview_frame, (int(vert_x), i),2,(0,255,255),-1)
+    # if(find_theta):
+    #     theta = trackingFunctions.finding_theta(vert_x,3*height/4,m,b,topview_centroid_y[0]) # centroid_y[0] is the intersection of the two lines  
+    #     if(found_distance): # if program has determined target x and y
+    #         top_x = trackingFunctions.find_x(theta, real_side_x, cam_dist) # top x is x and side x is y from drawing      
+    #         # megaBoard.write(b'top_x')
+    #         # megaBoard.write(b',')
+    #         # megaBoard.write(b'real_side_x')
+    #         # megaBoard.write(b'\n')
+    #         print("x: ", top_x, "y: ", real_side_x)
 
     if key==ord('a'):
         # start recording path
         record_path = True
         do_fit = True
     if key == ord('t'):
-        find_tape = True
+        sideview_frame_dist,y_val = trackingFunctions.get_tape_blob(sideview_frame, l_b_tape, u_b_tape, 5)
+        if sideview_frame_dist != 0:
+            calibration_ratio = real_dist/sideview_frame_dist
+            print("calibration ratio: ", calibration_ratio)
+            print("sideview_frame_dist: ", sideview_frame_dist)
+            find_tape = False
     if key==ord('c'):
         # clear path of centroids
         sideview_centroid_x = []
         sideview_centroid_y = []
-        tape_x = []
-        tape_y = []
+        sideview_xpos = []
+        sideview_ypos = []
         topview_centroid_x = []
         topview_centroid_y = []
         show_top_fit = False
         find_theta = False
         show_vertical_line = False
 
-    if key == ord('b'):
-        isReady = input("Are you ready?")
-        if isReady:
-            isReady = True
+
     if key==ord('q'):
         break
 

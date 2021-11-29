@@ -68,7 +68,9 @@ def finding_theta(x_vert, y_vert,m,b,int_line):
     theta = np.arctan(x_dist/y_dist)
     return math.degrees(theta)
 
-def find_x(theta, y):
-    x = y*np.tan(theta)
+def find_x(theta, y, cam_dist):
+    # cam_dist is the distance from the start of the side parabola 
+    # to the edge closer to the board of the top view camera
+    x = (y + cam_dist)*np.tan(theta) 
     return x
 

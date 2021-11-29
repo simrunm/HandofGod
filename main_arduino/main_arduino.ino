@@ -36,13 +36,13 @@ SpeedyStepper stepperT;
 //
 const int steps_per_rotation = 200;
 const float max_speed = 3.0; // rotations per second
-const float zero_speed = 1.0; // rotations per second
+const float zero_speed = .75; // rotations per second
 
 //
 // Initialize global x and y and target x and y
 //
-unsigned int x, x_target; // steps in the x direction
-unsigned int y, y_target; // steps in the x direction
+int x, x_target; // steps in the x direction
+int y, y_target; // steps in the x direction
 
 // 
 // Initialize for zero axis
@@ -88,12 +88,23 @@ void setup() {
   attachInterrupt(digitalPinToInterrupt(X_STOP_PIN), stop_x, RISING);
   attachInterrupt(digitalPinToInterrupt(Y_STOP_PIN), stop_y, RISING);
 
+  //clear_motors();
+  delay(1000);
   // Zero the axis
-  //zero_y();
+  zero_y();
   y = 0; // set global x to zero
-  //zero_x();
+  zero_x();
   x = 0; // set global y to zero
   Serial.print("Axis at Zero");
+  tention();
+  delay(1000);
+
+  // Try moving somewhere
+  move(300, 300);
+  delay(200);
+  move(20,20);
+  delay(200);
+  move(100,100);
   
 
 }
@@ -133,39 +144,75 @@ void zero_y() {
   // zeros the y position
   digitalWrite(LEFT_MOTOR_DIR, HIGH); // reverse left motor
   digitalWrite(RIGHT_MOTOR_DIR, LOW);
+  digitalWrite(TOP_MOTOR_DIR, HIGH);
   while (!y_zeroed) {
     // todo: optimize with register access
     // digitalWrite is slow enough the pulses will be long enough for the controller
     // HIGH pulse
     digitalWrite(LEFT_MOTOR_STEP, HIGH);
     digitalWrite(RIGHT_MOTOR_STEP, HIGH);
+    digitalWrite(TOP_MOTOR_STEP, HIGH);
     digitalWrite(LEFT_MOTOR_STEP, LOW);
     digitalWrite(RIGHT_MOTOR_STEP, LOW);
+    digitalWrite(TOP_MOTOR_STEP, LOW);
     // wait LOW
     delay(1000/(steps_per_rotation * zero_speed));
+  }
+}
+
+void clear_motors(){
+  digitalWrite(LEFT_MOTOR_STEP, LOW);
+  digitalWrite(RIGHT_MOTOR_STEP, LOW);
+  digitalWrite(TOP_MOTOR_STEP, LOW);
+}
+
+void tention(){
+  digitalWrite(LEFT_MOTOR_DIR, HIGH);
+  digitalWrite(RIGHT_MOTOR_DIR, LOW);
+  digitalWrite(TOP_MOTOR_DIR, LOW);
+  for (int step = 0; step <= 10; step++){
+    digitalWrite(LEFT_MOTOR_STEP, HIGH);
+    digitalWrite(RIGHT_MOTOR_STEP, HIGH);
+    digitalWrite(TOP_MOTOR_STEP, HIGH);
+    digitalWrite(LEFT_MOTOR_STEP, LOW);
+    digitalWrite(RIGHT_MOTOR_STEP, LOW);
+    digitalWrite(TOP_MOTOR_STEP, LOW);
+    // wait LOW
+    delay(1000/(steps_per_rotation * 2));
   }
 }
 
 ///////////////////////////////////////////////////////////////////////
 
 
-void move(float x, float y, float x_target, float y_target){
+void move(float x_target, float y_target){
+  // swap x directin
+  x_target = -x_target;
+
+  // prevent from crashing gantry
+  if (x_target < -max_gantry_x)
+    x_target = -max_gantry_x;
+  if (y_target > max_gantry_y)
+    y_target = max_gantry_y;
+  
   // calculate distance in mm
   float dx = x_target - x;
   float dy = y_target - y;
 
   // calculate steps needed to turn by each motor
-  long x_steps = dx * (1/spool_diameter*3.14) * (steps_per_rotation);
-  long y_steps = dy * (1/spool_diameter*3.14) * (steps_per_rotation);
+  long x_steps = dx * (1/(spool_diameter*3.14)) * (steps_per_rotation);
+  long y_steps = dy * (1/(spool_diameter*3.14)) * (steps_per_rotation);
 
   long steps_T = y_steps;
   long steps_L = x_steps + y_steps;
   long steps_R = x_steps - y_steps;
 
-  float speedInStepsPerSecond = 500;
-  float accelerationInStepsPerSecondPerSecond = 500;
+  float speedInStepsPerSecond = 5000;
+  float accelerationInStepsPerSecondPerSecond = 4500; // tested up to 5000
   moveXYWithCoordination(steps_R, steps_L, steps_T, speedInStepsPerSecond, accelerationInStepsPerSecondPerSecond);
-
+  tention();
+  x = x_target;
+  y = y_target;
   
 }
 

@@ -28,7 +28,7 @@
 unsigned long t; // timing is the core of *everything*
 const int steps_per_rotation = 200;
 const float max_speed = 3.0; // rotations per second
-const float zero_speed = 1; // rotations per second
+const float zero_speed = .75    ; // rotations per second
 unsigned int x, x_target; // steps in the x direction
 unsigned int y, y_target; // steps in the x direction
 volatile int x_zeroed = 0; // zeroing is complete

@@ -65,11 +65,12 @@ const float max_gantry_y = 410.0; // mm
 // Misc 
 //
 String command;
+bool zeroed;
 
 
 void setup() {
  // Get Serial running
-  Serial.begin(9600);
+  Serial.begin(115200);
 
   // Initialize Motors
   pinMode(LEFT_MOTOR_STEP, OUTPUT);
@@ -88,24 +89,14 @@ void setup() {
   attachInterrupt(digitalPinToInterrupt(X_STOP_PIN), stop_x, RISING);
   attachInterrupt(digitalPinToInterrupt(Y_STOP_PIN), stop_y, RISING);
 
-  //clear_motors();
-  delay(1000);
-  // Zero the axis
-  zero_y();
-  y = 0; // set global x to zero
-  zero_x();
-  x = 0; // set global y to zero
-  Serial.print("Axis at Zero");
-  tention();
-  delay(1000);
-
+  /*
   // Try moving somewhere
   move(300, 300);
   delay(200);
   move(20,20);
   delay(200);
-  move(100,100);
-  
+  move(200,200);
+  */
 
 }
 
@@ -182,6 +173,19 @@ void tention(){
   }
 }
 
+void zero_all(){
+  //clear_motors();
+  delay(1000);
+  // Zero the axis
+  zero_y();
+  y = 0; // set global x to zero
+  zero_x();
+  x = 0; // set global y to zero
+  //Serial.print("Axis at Zero");
+  tention();
+  delay(1000);
+}
+
 ///////////////////////////////////////////////////////////////////////
 
 
@@ -220,9 +224,16 @@ void move(float x_target, float y_target){
 void loop() {
   while (!Serial.available());
   command = Serial.readString();
-  Serial.print(command);
-
-
+  if (command == "Zero"){
+    zero_all();
+    zeroed = true;
+  }
+  else if (zeroed){
+    x_target = command.substring(1,4).toInt();
+    y_target = command.substring(5,8).toInt();
+    move(x_target,y_target);
+  }
+  
 }
 
 ////////////////// SPEEDY STEPPER CODE BELOW ///////////////////////////////////////

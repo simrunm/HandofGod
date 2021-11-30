@@ -26,12 +26,14 @@ show_vertical_line = False
 show_horizantal_line = False
 find_theta = False
 real_dist = 610
+real_dist_cam_tape = 300
 sideview_centroid_x=[]
 sideview_centroid_y=[]
 topview_centroid_x=[]
 topview_centroid_y=[]
 tape_x = []
 tape_y = []
+# calibration_ratio = 0
 calibration_ratio = 0
 cam_dist = 10 # measure adn change this
 # megaBoard = serial.Serial('COM7', 9600)
@@ -129,7 +131,8 @@ while True:
     if key == ord('t'):
         sideview_frame_dist,y_val = trackingFunctions.get_tape_blob(sideview_frame, l_b_tape, u_b_tape, 5)
         if sideview_frame_dist != 0:
-            calibration_ratio = real_dist/sideview_frame_dist
+            calibration_ratio = 0.0015*sideview_frame_dist
+            
             print("calibration ratio: ", calibration_ratio)
             print("sideview_frame_dist: ", sideview_frame_dist)
             find_tape = False

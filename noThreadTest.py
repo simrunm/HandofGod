@@ -1,3 +1,4 @@
+
 import cv2
 import numpy as np
 import trackingFunctions
@@ -5,6 +6,7 @@ import calculateBallPath
 import scipy.optimize
 import matplotlib.pyplot as plt
 import serial
+import math
 
 sideview = cv2.VideoCapture()
 sideview.open(1, cv2.CAP_DSHOW)
@@ -33,8 +35,10 @@ topview_centroid_x=[]
 topview_centroid_y=[]
 tape_x = []
 tape_y = []
+real_val = []
+
 # calibration_ratio = 0
-calibration_ratio = 0
+calibration_ratio = 0.807
 cam_dist = 10 # measure adn change this
 # megaBoard = serial.Serial('COM7', 9600)
 
@@ -52,7 +56,9 @@ while True:
 
     # get blobs with color sideview_frame
     x, y, w, h, sideview_mask_ball = trackingFunctions.get_color_blob(sideview_frame, l_b_side, u_b_side, 5)
-    if x != 0 and y != 0 and w != 0 and h != 0:
+    if np.allclose(x, 0, atol=0.25) or np.allclose(y, 0, atol=0.25):
+        pass
+    else:
         sideview_centroid_x.append(x)
         sideview_centroid_y.append(y)
     if len(sideview_centroid_x) > 0:
@@ -77,11 +83,15 @@ while True:
             fit_params, pcov = scipy.optimize.curve_fit(calculateBallPath.parabola, x_list,y_list)
             y_fit = calculateBallPath.parabola(x_list, *fit_params)
             length_centroid = len(x_list//2)
-            x1, x2, x3, y1, y2, y3 = x_list[0], x_list[length_centroid//2], x_list[length_centroid - 1], y_fit[0], y_fit[length_centroid//2], y_fit[length_centroid - 1]
-            a,b,c = calculateBallPath.calc_parabola_vertex(x1, x2, x3, y1, y2, y3)            
-            [sideview_xpos,sideview_ypos] = calculateBallPath.find_parabola(a,b,c)
-            show_side_fit = True
-        
+            x1, x2, x3, y1, y2, y3 = x_list[0], x_list[length_centroid//2], x_list[length_centroid - 1], y_fit[0], y_fit[length_centroid//2], y_fit[length_centroid - 1]            
+            denom = (x1-x2) * (x1-x3) * (x2-x3);
+            if np.allclose(denom, 0, atol=0.25):
+                pass
+            else:
+                a,b,c = calculateBallPath.calc_parabola_vertex(x1, x2, x3, y1, y2, y3)        
+                [sideview_xpos,sideview_ypos] = calculateBallPath.find_parabola(a,b,c)
+                show_side_fit = True
+    
         # topview
         if len(topview_centroid_x) == 1:
             vert_x = topview_centroid_x[0]
@@ -104,9 +114,13 @@ while True:
                 side_x = sideview_xpos[i]
                 real_side_x = sideview_xpos[i]*calibration_ratio # the side coordinate converted into real distances
                 print("side x real distance: ", real_side_x)
+                real_val.append(real_side_x)
+                if len(real_val) >= 30:
+                    quit
                 # found_distance = True
-            else:            
-                cv2.circle(sideview_frame, (int(sideview_xpos[i]), int(sideview_ypos[i])),2,(0,255,0),-1)
+            else:   
+                if not math.isnan(sideview_xpos[i]):        
+                    cv2.circle(sideview_frame, (int(sideview_xpos[i]), int(sideview_ypos[i])),2,(0,255,0),-1)
         # topview
         # for i in range(len(topview_xpos)):          
         #     cv2.circle(topview_frame, (int(topview_xpos[i]), int(topview_ypos[i])),2,(0,255,0),-1)
@@ -131,10 +145,10 @@ while True:
     if key == ord('t'):
         sideview_frame_dist,y_val = trackingFunctions.get_tape_blob(sideview_frame, l_b_tape, u_b_tape, 5)
         if sideview_frame_dist != 0:
-            calibration_ratio = 0.0015*sideview_frame_dist
+            calibration_ratio = real_dist/sideview_frame_dist
             
             print("calibration ratio: ", calibration_ratio)
-            print("sideview_frame_dist: ", sideview_frame_dist)
+            # print("sideview_frame_dist: ", sideview_frame_dist)
             find_tape = False
     if key==ord('c'):
         # clear path of centroids

@@ -19,7 +19,7 @@ def get_color_blob(frame, lower_bound, upper_bound, blob_min_size):
             # get bounding box
             approx=cv2.approxPolyDP(contour, 0.01*cv2.arcLength(contour,True),True)
             x,y,w,h=cv2.boundingRect(approx)
-            # cv2.rectangle(frame,(x,y),(x+w,y+h),(0,255,0),4)
+            cv2.rectangle(frame,(x,y),(x+w,y+h),(0,255,0),4)
             # get centroid
             M=cv2.moments(contour)
             cx=int(M['m10']//M['m00'])

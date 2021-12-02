@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
 import math
+import time
 
 def get_color_blob(frame, lower_bound, upper_bound, blob_min_size):
     cx, cy, w, h = 0,0,0,0
@@ -25,8 +26,8 @@ def get_color_blob(frame, lower_bound, upper_bound, blob_min_size):
             cx=int(M['m10']//M['m00'])
             cy=int(M['m01']//M['m00'])
             # cv2.circle(frame, (cx,cy),3,(255,0,0),-1)
-        return cx, cy, w, h, mask
-    return cx, cy, w, h, mask
+        return True, cx, cy, w, h, mask
+    return False, cx, cy, w, h, mask
 
 def get_tape_blob(frame, lower_bound, upper_bound, blob_min_size):
     x_vals = []
@@ -83,4 +84,15 @@ def plot_points(lst_points_x, lst_points_y, frame):
             for i in range(len(lst_points_x)):
                 # plot all points on frame
                 cv2.circle(frame, (lst_points_x[i], lst_points_y[i]),3,(0,0,255),-1) 
+
+def convergence_check(current_prediction, new_prediction, current_time, isprint):
+    convergence_threshold = 1
+    new_time = time.time()
+    rate_of_change = abs(new_prediction-current_prediction)/(new_time-current_time)
+    if isprint:
+        print("rate_of_change: ", rate_of_change)
+    if (rate_of_change < convergence_threshold): # if we have converged
+        return True
+    else:
+        return False
 

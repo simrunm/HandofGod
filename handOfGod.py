@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 import serial
 import math
 from constants import *
+import time
 
 def HandOfGod():
     sideview = cv2.VideoCapture()
@@ -21,12 +22,18 @@ def HandOfGod():
     show_linear_fit = False
     show_vertical_line = False
     show_horizantal_line = False
+    isPrint = True
     find_theta = False
     sideview_centroid_x = []
     sideview_centroid_y = []
     topview_centroid_x = []
     topview_centroid_y = []
     real_val = []
+    calibration_ratio = 1.713
+    y_val = 397.5
+    previous_prediction = 0
+    previous_time = 0
+
     # importing other neccessary constants from constants.py
 
 
@@ -42,9 +49,9 @@ def HandOfGod():
         # Getting red color blobs for sideview and topview               
         
         # SIDEWIEW--------------------------------------------------------------
-        x, y, w, h, sideview_mask_ball = trackingFunctions.get_color_blob(sideview_frame, l_b_side, u_b_side, 5)
+        colorBlobExists, x, y, w, h, sideview_mask_ball = trackingFunctions.get_color_blob(sideview_frame, l_b_side, u_b_side, 5)
         # ignore x and y points if they are too close to 0
-        if np.allclose(x, 0, atol=0.25) or np.allclose(y, 0, atol=0.25):
+        if not colorBlobExists or np.allclose(x, 0, atol=0.25) or np.allclose(y, 0, atol=0.25):
             pass
         else:
             sideview_centroid_x.append(x)
@@ -52,8 +59,8 @@ def HandOfGod():
         trackingFunctions.plot_points(sideview_centroid_x, sideview_centroid_y, sideview_frame)
 
          
-        # TOPVIEW --------------------------------------------------------------------
-        x, y, w, h, topview_mask_ball = trackingFunctions.get_color_blob(topview_frame, l_b_top, u_b_top, 5)
+        # # TOPVIEW --------------------------------------------------------------------
+        throwaway, x, y, w, h, topview_mask_ball = trackingFunctions.get_color_blob(topview_frame, l_b_top, u_b_top, 5)
         if x != 0 and y != 0 and w != 0 and h != 0:
             topview_centroid_x.append(x)
             topview_centroid_y.append(y)
@@ -75,7 +82,7 @@ def HandOfGod():
                     [sideview_xpos,sideview_ypos] = calculateBallPath.find_parabola(a,b,c)
                     show_side_fit = True
         
-            # TOPVIEW -------------------------------------------------------------------------------------------------       
+            # # TOPVIEW -------------------------------------------------------------------------------------------------       
             # if len(topview_centroid_x) == 1:
             #     vert_x = topview_centroid_x[0]
             #     show_vertical_line = True
@@ -93,13 +100,23 @@ def HandOfGod():
                 if y_val - 5 < sideview_ypos[i] < y_val + 5:
                     cv2.circle(sideview_frame, (int(sideview_xpos[i]), int(sideview_ypos[i])),2,(255,0,0),-1)
                     real_side_x = sideview_xpos[i]*calibration_ratio # the side coordinate converted into real distances
-                    print("side x real distance: ", real_side_x)
+                    # print("side x real distance: ", real_side_x)
                     real_val.append(real_side_x)
+                    isPrint = False
                     
                     # TODO Find a way to send over a good final point and return it here
-                    if len(real_val) >= 30:
-                        return True
-                    found_distance = True
+                    if (trackingFunctions.convergence_check(previous_prediction, real_side_x, previous_time, colorBlobExists)):
+                        if len(real_val) > 0 and len(real_val) < 30:
+                            print("side x real distance: ", real_side_x)
+                            isPrint = True
+                        else:
+                            isPrint = False
+
+                        found_distance = True
+                    # if hasn't converged
+                    else:
+                        previous_time = time.time()
+                        previous_prediction = real_side_x
 
                 # Plotting all the points parabola points that are not the end coordinate
                 else:   
@@ -107,7 +124,7 @@ def HandOfGod():
                         cv2.circle(sideview_frame, (int(sideview_xpos[i]), int(sideview_ypos[i])),2,(0,255,0),-1)
         
         
-        # TOPVIEW --------------------------------------------------------------------------------------
+        # # TOPVIEW --------------------------------------------------------------------------------------
         #     for i in range(len(topview_xpos)):          
         #         cv2.circle(topview_frame, (int(topview_xpos[i]), int(topview_ypos[i])),2,(0,255,0),-1)
         #         find_theta = True
@@ -118,8 +135,9 @@ def HandOfGod():
         #     theta = trackingFunctions.finding_theta(vert_x,3*height/4,m,b,topview_centroid_y[0]) # centroid_y[0] is the intersection of the two lines  
         #     if(found_distance): # if program has determined target x and y
         #         top_x = trackingFunctions.find_x(theta, real_side_x, cam_dist) # top x is x and side x is y from drawing      
+        #         print("x: ", top_x, "y: ", real_side_x)
         #         return top_x, real_side_x
-        #         # print("x: ", top_x, "y: ", real_side_x)
+                
            
         # KEYBOARD COMMANDS
         if key==ord('a'):
@@ -150,4 +168,4 @@ def HandOfGod():
     cv2.waitKey(0)
     cv2.destroyAllWindows()
 
-HandOfGod()
+print("prediction: ", HandOfGod())

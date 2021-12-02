@@ -49,20 +49,15 @@ def HandOfGod():
         else:
             sideview_centroid_x.append(x)
             sideview_centroid_y.append(y)
-        if len(sideview_centroid_x) > 0:
-            for i in range(len(sideview_centroid_x)):
-                # plot all points on frame
-                cv2.circle(sideview_frame, (sideview_centroid_x[i], sideview_centroid_y[i]),3,(0,0,255),-1) 
+        trackingFunctions.plot_points(sideview_centroid_x, sideview_centroid_y, sideview_frame)
+
          
         # TOPVIEW --------------------------------------------------------------------
         x, y, w, h, topview_mask_ball = trackingFunctions.get_color_blob(topview_frame, l_b_top, u_b_top, 5)
         if x != 0 and y != 0 and w != 0 and h != 0:
             topview_centroid_x.append(x)
             topview_centroid_y.append(y)
-        if len(topview_centroid_x) > 0:
-            for i in range(len(topview_centroid_x)):
-                # plot all points on frame
-                cv2.circle(topview_frame, (topview_centroid_x[i], topview_centroid_y[i]),3,(0,0,255),-1) 
+        trackingFunctions.plot_points(topview_centroid_x, topview_centroid_y, topview_frame)
 
         
         # Finding all the points in the parabola for sideview and a straight line for topview. 

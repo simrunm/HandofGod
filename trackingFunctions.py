@@ -74,3 +74,9 @@ def find_x(theta, y, cam_dist):
     x = (y + cam_dist)*np.tan(theta) 
     return x
 
+def plot_points(lst_points_x, lst_points_y, frame):
+        if len(lst_points_x) > 0:
+            for i in range(len(lst_points_x)):
+                # plot all points on frame
+                cv2.circle(frame, (lst_points_x[i], lst_points_y[i]),3,(0,0,255),-1) 
+

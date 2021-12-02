@@ -37,7 +37,7 @@ def get_tape_blob(frame, lower_bound, upper_bound, blob_min_size):
     mask=cv2.inRange(hsv,lower_bound,upper_bound) 
     contours,_= cv2.findContours(mask,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
     if len(contours) > 0:
-        # find largest blob
+        # get taep blobs
         tape_blobs = []
         for contour in contours:
             if cv2.contourArea(contour)>blob_min_size:

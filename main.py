@@ -1,6 +1,6 @@
 import serial
 import time
-from noThreadTest import HandOfGod
+from handOfGod import HandOfGod
 
 
 def InitializeSerial():
@@ -77,9 +77,9 @@ def main(arduino):
     #     WriteArduino(arduino,command)
 
     # real_x,real_y = HandOfGod()
-    real_x,real_y = 10,10
-    # print(real_x, real_y)
-    MoveMotors(arduino,convert(real_x,real_y)) # input the final x y 
+    # print("real_x: ", real_x, "real_y: ", real_y)
+    MoveMotors(arduino,(10,10)) # input the final x y 
+    # MoveMotors(arduino,convert(real_x, real_y)) # input the final x y 
         #break
 
 def convert(x,y):
@@ -94,14 +94,10 @@ def convert(x,y):
     """
     y = y - 550
     y = y * (410/500)
-    print(x,y)
+    print("converted x: ", x, "converted y: ", y)
     return 100,100
 
 if __name__ == "__main__":
     arduino = InitializeSerial()
     #MoveMotors(arduino,(300,300))
     main(arduino)
-    
-
-
-

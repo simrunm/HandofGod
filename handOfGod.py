@@ -60,7 +60,7 @@ def HandOfGod():
         # SIDEWIEW--------------------------------------------------------------
         blobFound, x, y, w, h, sideview_mask_ball = trackingFunctions.get_color_blob(sideview_frame, l_b_side, u_b_side, 5)
         # ignore x and y points if they are too close to 0
-        if not colorBlobExists or np.allclose(x, 0, atol=0.25) or np.allclose(y, 0, atol=0.25):
+        if not blobFound or np.allclose(x, 0, atol=0.25) or np.allclose(y, 0, atol=0.25):
             pass
         else:
             sideview_centroid_x.append(x)
@@ -113,25 +113,17 @@ def HandOfGod():
 
                     # if found_distance == False:
                     # if predicted landing pose has converged
+                    convergence_threshold = 30
                     if blobFound:
                         roc = trackingFunctions.convergence_check(previous_prediction, real_side_x, current_time, blobFound)
-                        if (abs(current_roc-roc) < 30):
-                            print(end='\n\n\n')
+                        if (abs(current_roc-roc) < convergence_threshold):
                             print("we have converged")
-                            print(end='\n\n\n')
-
+                            return (200,real_side_x)
                     # if hasn't converged
                     else:
                         current_time = time.time()
                         previous_prediction = real_side_x
                         current_roc = roc
-
-                        # if rate_of_rate_of_change < roroc_threshold:
-                        #     return real_side_x
-                        # else:
-                        #     current_time = time.time()
-                        #     previous_prediction = real_side_x
-                        #     prev_roc = roc
                     
                     # TODO Find a way to send over a good final point and return it here
                     # if len(real_val) >= 30:
@@ -189,4 +181,4 @@ def HandOfGod():
     cv2.waitKey(0)
     cv2.destroyAllWindows()
 
-print("prediction: ", HandOfGod())
+# print("prediction: ", HandOfGod())

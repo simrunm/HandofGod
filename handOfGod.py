@@ -60,7 +60,7 @@ def HandOfGod():
         # SIDEWIEW--------------------------------------------------------------
         blobFound, x, y, w, h, sideview_mask_ball = trackingFunctions.get_color_blob(sideview_frame, l_b_side, u_b_side, 5)
         # ignore x and y points if they are too close to 0
-        if not colorBlobExists or np.allclose(x, 0, atol=0.25) or np.allclose(y, 0, atol=0.25):
+        if not blobFound or np.allclose(x, 0, atol=0.25) or np.allclose(y, 0, atol=0.25):
             pass
         else:
             sideview_centroid_x.append(x)

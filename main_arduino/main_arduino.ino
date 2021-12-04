@@ -7,6 +7,43 @@
 
 #include <SpeedyStepper.h>
 
+// uncomment to enable debug printing
+//#define DEBUG
+
+// command definitions
+// bitmasks for commands
+#define OPCODE_MASK      0xF
+#define DATA_MASK     0x0FFF
+// opcodes:
+//    * 0x0: zero     (no data)
+//    * 0x1: tension +x (steps)
+//    * 0x2: tension +y (steps)
+//    * 0x3: tension -x (steps)
+//    * 0x4: tension -y (steps)
+//    * 0x5: move to x  (steps)
+//    * 0x6: move to y  (steps)
+//    * 0x7: ready    (no data)
+//    * 0x8-0xF:       (unused)
+enum opcode {
+  C_ZERO,
+  C_TENSION_X_P,
+  C_TENSION_X_N,
+  C_TENSION_Y_P,
+  C_TENSION_Y_N,
+  C_MOVE_X,
+  C_MOVE_Y,
+  C_READY,
+};
+
+char opcode;
+short data;
+short buffer;
+short bytes; 
+// instead of doing string decoding and stuff we can just use the binary
+// all commands are two bytes
+// format: 4 bits opcode + 12 bits data
+
+
 //
 // pin assignments
 //
@@ -220,18 +257,64 @@ void move(float x_target, float y_target){
   
 }
 
+short x_command, y_command;
+
 
 void loop() {
-  while (!Serial.available());
-  command = Serial.readString();
-  if (command == "Zero"){
-    zero_all();
-    zeroed = true;
+  // number of bytes in the serial buffer
+  bytes = Serial.available();
+  if (bytes == 2) {
+    // read a command into the buffer
+    Serial.readBytes((char*)&buffer, 2);
+    opcode = (buffer >> 12) & OPCODE_MASK;
+    data = buffer & DATA_MASK;
+    switch (opcode) {
+      case (C_ZERO):
+        zero_all();
+        zeroed = true;
+        break;
+      case (C_TENSION_X_P):
+        break;
+      case (C_TENSION_X_N):
+        break;
+      case (C_TENSION_Y_P):
+        break;
+      case (C_TENSION_Y_N):
+        break;
+      case (C_MOVE_X):
+        x_command = data;
+        break;
+      case (C_MOVE_Y):
+        y_command = data;
+        break;
+      case (C_READY):
+        set_state(S_READY);
+        break;
+      default:
+        // unused opcode
+        break;
+    }
+    #ifdef DEBUG
+    Serial.println(String((int)opcode, HEX));
+    Serial.println(String((int)data));
+    Serial.println(String(buffer, HEX));
+    #endif
+  } else if (bytes > 2) {
+    // check if this error mode ever occurs, might be unnecessary!
+    Serial.read();
+    #ifdef DEBUG
+    Serial.println("ERROR: READ > 2 BYTES");
+    #endif
   }
-  else if (zeroed){
-    x_target = command.substring(1,4).toInt();
-    y_target = command.substring(5,8).toInt();
+
+  // hack to accommodate seprate packets for x and y
+  // this can be done cleaner but it works
+  if (x_command && y_command) {
+    x_target = x_command;
+    y_target = y_command;
     move(x_target,y_target);
+    x_command = 0;
+    y_command = 0;
   }
   
 }

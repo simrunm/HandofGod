@@ -5,7 +5,7 @@ from noThreadTest import HandOfGod
 
 def InitializeSerial():
     ''' 
-    Initialze serial communication with the Arduino.
+    Initialize serial communication with the Arduino.
 
     Returns: Arduino serial object
     '''
@@ -17,11 +17,30 @@ def InitializeSerial():
     
     return arduino
 
-def WriteArduino(arduino, x):
+def ORbytes(abytes, bbytes):
     '''
-    Write serial to Arduino
+    Bitwise OR for two bytearrays.
+
+    Args:
+        abytes: a bytearray
+        bbytes: another bytearray
+    Returns:
+        a byte array with the result
     '''
-    arduino.write(bytes(x, 'utf-8'))
+    return bytes([int(a) | int(b) for a, b in zip(abytes[::-1], bbytes[::-1])][::-1])
+
+
+# this has to be manually synced with the firmware if the opcodes are changed
+opcodes = {
+  "ZERO":  b'\x00\x00',
+  "T+X":   b'\x00\x10',
+  "T+Y":   b'\x00\x20',
+  "T-X":   b'\x00\x30',
+  "T-Y":   b'\x00\x40',
+  "X":     b'\x00\x50',
+  "Y":     b'\x00\x50',
+  "READY": b'\x00\x70',
+}
 
 def ReadArduino(arduino):
     data = arduino.readline()
@@ -38,11 +57,19 @@ def MoveMotors(arduino, location: tuple):
     Returns:
         NONE
     '''
-    command_location = f'X{location[0]}Y{location[1]}'
-    WriteArduino(arduino,command_location)
+    # the arduino is little endian which makes byte stuff slightly unintuitive
+    # send the x command
+    x_data = location[0].to_bytes(2, 'little');
+    x_packet = ORbytes(x_data, opcodes["X"])
+    arduino.write(x_packet);
+    # then the y command
+    y_data = location[1].to_bytes(2, 'little');
+    y_packet = ORbytes(y_data, opcodes["Y"])
+    arduino.write(y_packet);
 
 def main(arduino):
-    WriteArduino(arduino,"Zero")
+    # the zero command is just two bytes of 0s
+    arduino.write(bytearray(b'\x00x00'))
     time.sleep(5) 
     # while True:
     #     command = input("Enter a command: ") # Taking input from user

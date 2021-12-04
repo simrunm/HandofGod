@@ -259,28 +259,28 @@ void loop() {
     opcode = (buffer >> 12) & OPCODE_MASK;
     data = buffer & DATA_MASK;
     switch (opcode) {
-      case (0x0):
+      case (C_ZERO):
         zero();
         break;
-      case (0x1):
+      case (C_TENSION_X_P):
         zero();
         break;
-      case (0x2):
+      case (C_TENSION_X_N):
         zero();
         break;
-      case (0x3):
+      case (C_TENSION_Y_P):
         zero();
         break;
-      case (0x4):
+      case (C_TENSION_Y_N):
         zero();
         break;
-      case (0x5):
+      case (C_MOVE_X):
         zero();
         break;
-      case (0x6):
+      case (C_MOVE_Y):
         zero();
         break;
-      case (0x7):
+      case (C_READY):
         set_state(S_READY);
         break;
       default:
@@ -300,7 +300,7 @@ void loop() {
     #endif
   }
 
-  // this can be optimized eventually by just readying the whole register at once
+  // this can be optimized eventually by just reading the whole register at once
   // hardware control interface
   // reads take a while so this might be worth optimizing eventually
   if (digitalRead(BUTTON_ZERO) == LOW) {

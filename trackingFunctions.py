@@ -86,16 +86,12 @@ def plot_points(lst_points_x, lst_points_y, frame):
                 cv2.circle(frame, (lst_points_x[i], lst_points_y[i]),3,(0,0,255),-1) 
 
 def convergence_check(current_prediction, new_prediction, current_time, isprint):
-    convergence_threshold = 50
     new_time = time.time()
     rate_of_change = abs(new_prediction-current_prediction)/(new_time-current_time)
     if isprint:
         print("side x real distance: ", new_prediction)
         print("rate_of_change: ", rate_of_change)
-    if (rate_of_change < convergence_threshold): # if we have converged
-        return rate_of_change
-    else:
-        return rate_of_change
+    return rate_of_change
 
 # def convergence_check(current_prediction, new_prediction, current_time):
 #     new_time = time.time()

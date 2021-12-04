@@ -1,7 +1,7 @@
 import serial
 
 # quick sample for sending commands as binary to the arduino
-port = serial.Serial('/dev/ttyUSB0', 9600);
+port = serial.Serial('/dev/ttyACM0', 115200);
 # this has to be manually synced with the firmware if the opcodes are changed
 opcodes = {
   "ZERO":  b'\x00\x00',
@@ -31,5 +31,3 @@ def send_position(x, y):
   port.write(y_packet);
   print(y_packet.hex())
   print(f"\"{y_packet.decode('utf-8')}\"")
-
-send_position(100, 100)

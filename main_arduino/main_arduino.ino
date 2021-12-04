@@ -8,7 +8,7 @@
 #include <SpeedyStepper.h>
 
 // uncomment to enable debug printing
-//#define DEBUG
+#define DEBUG
 
 // command definitions
 // bitmasks for commands
@@ -59,6 +59,14 @@ short bytes;
 #define LEFT_MOTOR_DIR   11
 #define RIGHT_MOTOR_STEP 12
 #define RIGHT_MOTOR_DIR  13
+
+// stepper motor directions
+#define TOP_MOTOR_OUT    LOW
+#define TOP_MOTOR_IN    HIGH
+#define LEFT_MOTOR_OUT  HIGH
+#define LEFT_MOTOR_IN    LOW
+#define RIGHT_MOTOR_OUT  LOW
+#define RIGHT_MOTOR_IN  HIGH
 
 
 //
@@ -150,10 +158,13 @@ void stop_y() {
 }
 
 void zero_x() {
+  #ifdef DEBUG
+  Serial.println("Zeroing X");
+  #endif
   x_zeroed = 0;
   // zeros the x position
-  digitalWrite(LEFT_MOTOR_DIR, LOW); // same direction
-  digitalWrite(RIGHT_MOTOR_DIR, LOW);
+  digitalWrite(LEFT_MOTOR_DIR, LEFT_MOTOR_OUT); // same direction
+  digitalWrite(RIGHT_MOTOR_DIR, RIGHT_MOTOR_IN);
   while (!x_zeroed) {
     // todo: optimize with register access
     // digitalWrite is slow enough the pulses will be long enough for the controller
@@ -168,11 +179,14 @@ void zero_x() {
 }
 
 void zero_y() {
+  #ifdef DEBUG
+  Serial.println("Zeroing Y");
+  #endif
   y_zeroed = 0;
   // zeros the y position
-  digitalWrite(LEFT_MOTOR_DIR, HIGH); // reverse left motor
-  digitalWrite(RIGHT_MOTOR_DIR, LOW);
-  digitalWrite(TOP_MOTOR_DIR, HIGH);
+  digitalWrite(LEFT_MOTOR_DIR, LEFT_MOTOR_IN); // reverse left motor
+  digitalWrite(RIGHT_MOTOR_DIR, RIGHT_MOTOR_IN);
+  digitalWrite(TOP_MOTOR_DIR, TOP_MOTOR_OUT);
   while (!y_zeroed) {
     // todo: optimize with register access
     // digitalWrite is slow enough the pulses will be long enough for the controller
@@ -195,9 +209,9 @@ void clear_motors(){
 }
 
 void tention(){
-  digitalWrite(LEFT_MOTOR_DIR, HIGH);
-  digitalWrite(RIGHT_MOTOR_DIR, LOW);
-  digitalWrite(TOP_MOTOR_DIR, LOW);
+  digitalWrite(LEFT_MOTOR_DIR, LEFT_MOTOR_IN);
+  digitalWrite(RIGHT_MOTOR_DIR, RIGHT_MOTOR_IN);
+  digitalWrite(TOP_MOTOR_DIR, TOP_MOTOR_IN);
   for (int step = 0; step <= 10; step++){
     digitalWrite(LEFT_MOTOR_STEP, HIGH);
     digitalWrite(RIGHT_MOTOR_STEP, HIGH);
@@ -268,8 +282,16 @@ void loop() {
     Serial.readBytes((char*)&buffer, 2);
     opcode = (buffer >> 12) & OPCODE_MASK;
     data = buffer & DATA_MASK;
+    // for now also ZZ in the serial monitor as a zero
+    if (buffer == 0x5a5a) {
+      data = 0;
+      opcode = C_ZERO;
+    }
     switch (opcode) {
       case (C_ZERO):
+        #ifdef DEBUG
+        Serial.println("ZEROING");
+        #endif
         zero_all();
         zeroed = true;
         break;
@@ -288,13 +310,13 @@ void loop() {
         y_command = data;
         break;
       case (C_READY):
-        set_state(S_READY);
         break;
       default:
         // unused opcode
         break;
     }
     #ifdef DEBUG
+    Serial.println("New command:");
     Serial.println(String((int)opcode, HEX));
     Serial.println(String((int)data));
     Serial.println(String(buffer, HEX));
@@ -432,7 +454,7 @@ void moveXYWithCoordination(long stepsR, long stepsL, long stepsT, float speedIn
   //
   stepperT.setSpeedInStepsPerSecond(speedInStepsPerSecond_T);
   stepperT.setAccelerationInStepsPerSecondPerSecond(accelerationInStepsPerSecondPerSecond_T);
-  stepperT.setupRelativeMoveInSteps(stepsT);
+  stepperT.setupRelativeMoveInSteps(-stepsT);
 
 
   //

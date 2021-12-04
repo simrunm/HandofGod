@@ -118,7 +118,7 @@ void setup() {
   digitalWrite(LED_Y, HIGH);
   digitalWrite(LED_R, HIGH);
   // serial for receiving commands
-  Serial.begin(9600);
+  Serial.begin(115200);
   // setup the motion system with contraints
   
   

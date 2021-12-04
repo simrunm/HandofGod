@@ -72,6 +72,10 @@ def finding_theta(x_vert, y_vert,m,b,int_line):
 def find_x(theta, y, cam_dist):
     # cam_dist is the distance from the start of the side parabola 
     # to the edge closer to the board of the top view camera
+    
+    # new change to make cam_dist along the hypotnuse
+    cam_dist = cam_dist / np.cos(theta)
+    
     x = (y + cam_dist)*np.tan(theta) 
     return x
 

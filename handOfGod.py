@@ -8,6 +8,7 @@ import serial
 import time
 import math
 from constants import *
+import time
 
 def HandOfGod():
     sideview = cv2.VideoCapture()
@@ -21,6 +22,7 @@ def HandOfGod():
     show_linear_fit = False
     show_vertical_line = False
     show_horizantal_line = False
+    isPrint = True
     find_theta = False
     sideview_centroid_x = []
     sideview_centroid_y = []
@@ -58,7 +60,7 @@ def HandOfGod():
         # SIDEWIEW--------------------------------------------------------------
         blobFound, x, y, w, h, sideview_mask_ball = trackingFunctions.get_color_blob(sideview_frame, l_b_side, u_b_side, 5)
         # ignore x and y points if they are too close to 0
-        if np.allclose(x, 0, atol=0.25) or np.allclose(y, 0, atol=0.25):
+        if not colorBlobExists or np.allclose(x, 0, atol=0.25) or np.allclose(y, 0, atol=0.25):
             pass
         else:
             sideview_centroid_x.append(x)
@@ -88,7 +90,7 @@ def HandOfGod():
                     [sideview_xpos,sideview_ypos] = calculateBallPath.find_parabola(a,b,c)
                     show_side_fit = True
         
-            # TOPVIEW -------------------------------------------------------------------------------------------------       
+            # # TOPVIEW -------------------------------------------------------------------------------------------------       
             # if len(topview_centroid_x) == 1:
             #     vert_x = topview_centroid_x[0]
             #     show_vertical_line = True
@@ -152,8 +154,9 @@ def HandOfGod():
         #     theta = trackingFunctions.finding_theta(vert_x,3*height/4,m,b,topview_centroid_y[0]) # centroid_y[0] is the intersection of the two lines  
         #     if(found_distance): # if program has determined target x and y
         #         top_x = trackingFunctions.find_x(theta, real_side_x, cam_dist) # top x is x and side x is y from drawing      
+        #         print("x: ", top_x, "y: ", real_side_x)
         #         return top_x, real_side_x
-        #         # print("x: ", top_x, "y: ", real_side_x)
+                
            
         # KEYBOARD COMMANDS
         if key==ord('a'):
@@ -186,15 +189,4 @@ def HandOfGod():
     cv2.waitKey(0)
     cv2.destroyAllWindows()
 
-def convergence_check(current_prediction, new_prediction, current_time, isprint):
-    convergence_threshold = 1
-    new_time = time.time()
-    rate_of_change = abs(new_prediction-current_prediction)/(new_time-current_time)
-    if isprint:
-        print("rate_of_change: ", rate_of_change)
-    if (rate_of_change < convergence_threshold): # if we have converged
-        return True
-    else:
-        return False
-
-HandOfGod()
+print("prediction: ", HandOfGod())

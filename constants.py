@@ -1,7 +1,6 @@
-
 import numpy as np
 
-l_b_side=np.array([35, 110, 110])
+l_b_side=np.array([35, 100, 100])
 u_b_side=np.array([80, 220, 220])
 l_b_top=np.array([35, 70, 70])
 u_b_top=np.array([80, 220, 220])

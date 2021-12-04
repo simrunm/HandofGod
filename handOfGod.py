@@ -1,4 +1,3 @@
-
 import cv2
 import numpy as np
 import trackingFunctions
@@ -6,6 +5,7 @@ import calculateBallPath
 import scipy.optimize
 import matplotlib.pyplot as plt
 import serial
+import time
 import math
 from constants import *
 
@@ -26,9 +26,23 @@ def HandOfGod():
     sideview_centroid_y = []
     topview_centroid_x = []
     topview_centroid_y = []
-    real_val = []
-    # importing other neccessary constants from constants.py
-
+    predicted_landing_poses = []
+    previous_prediction = 0
+    current_time = 0
+    current_roc = 0
+    # importing other neccessary constants from constants.
+    # for some reason, constants aren't importing
+    l_b_side=np.array([35, 50, 50])
+    u_b_side=np.array([80, 220, 220])
+    l_b_top=np.array([35, 70, 70])
+    u_b_top=np.array([80, 220, 220])
+    l_b_tape=np.array([150, 130, 130])
+    u_b_tape=np.array([180, 220, 220])
+    real_dist = 610
+    calibration_ratio = 1.713
+    y_val = 397.5
+    roc = 0
+    roroc_threshold = 10
 
     if sideview.isOpened():
         width  = sideview.get(cv2.CAP_PROP_FRAME_WIDTH)   # float `width`
@@ -42,7 +56,7 @@ def HandOfGod():
         # Getting red color blobs for sideview and topview               
         
         # SIDEWIEW--------------------------------------------------------------
-        x, y, w, h, sideview_mask_ball = trackingFunctions.get_color_blob(sideview_frame, l_b_side, u_b_side, 5)
+        blobFound, x, y, w, h, sideview_mask_ball = trackingFunctions.get_color_blob(sideview_frame, l_b_side, u_b_side, 5)
         # ignore x and y points if they are too close to 0
         if np.allclose(x, 0, atol=0.25) or np.allclose(y, 0, atol=0.25):
             pass
@@ -53,13 +67,12 @@ def HandOfGod():
 
          
         # TOPVIEW --------------------------------------------------------------------
-        x, y, w, h, topview_mask_ball = trackingFunctions.get_color_blob(topview_frame, l_b_top, u_b_top, 5)
+        throwaway, x, y, w, h, topview_mask_ball = trackingFunctions.get_color_blob(topview_frame, l_b_top, u_b_top, 5)
         if x != 0 and y != 0 and w != 0 and h != 0:
             topview_centroid_x.append(x)
             topview_centroid_y.append(y)
         trackingFunctions.plot_points(topview_centroid_x, topview_centroid_y, topview_frame)
 
-        
         # Finding all the points in the parabola for sideview and a straight line for topview. 
         if (do_fit):
             # SIDEVIEW -------------------------------------------------------------------
@@ -93,19 +106,40 @@ def HandOfGod():
                 if y_val - 5 < sideview_ypos[i] < y_val + 5:
                     cv2.circle(sideview_frame, (int(sideview_xpos[i]), int(sideview_ypos[i])),2,(255,0,0),-1)
                     real_side_x = sideview_xpos[i]*calibration_ratio # the side coordinate converted into real distances
-                    print("side x real distance: ", real_side_x)
-                    real_val.append(real_side_x)
+                    # print("side x real distance: ", real_side_x)
+                    # predicted_landing_poses.append(real_side_x)
+
+                    # if found_distance == False:
+                    # if predicted landing pose has converged
+                    if blobFound:
+                        roc = trackingFunctions.convergence_check(previous_prediction, real_side_x, current_time, blobFound)
+                        if (abs(current_roc-roc) < 30):
+                            print(end='\n\n\n')
+                            print("we have converged")
+                            print(end='\n\n\n')
+
+                    # if hasn't converged
+                    else:
+                        current_time = time.time()
+                        previous_prediction = real_side_x
+                        current_roc = roc
+
+                        # if rate_of_rate_of_change < roroc_threshold:
+                        #     return real_side_x
+                        # else:
+                        #     current_time = time.time()
+                        #     previous_prediction = real_side_x
+                        #     prev_roc = roc
                     
                     # TODO Find a way to send over a good final point and return it here
-                    if len(real_val) >= 30:
-                        return True
-                    found_distance = True
+                    # if len(real_val) >= 30:
+                    #     return True
+                    #     found_distance = True
 
                 # Plotting all the points parabola points that are not the end coordinate
                 else:   
                     if not math.isnan(sideview_xpos[i]):        
                         cv2.circle(sideview_frame, (int(sideview_xpos[i]), int(sideview_ypos[i])),2,(0,255,0),-1)
-        
         
         # TOPVIEW --------------------------------------------------------------------------------------
         #     for i in range(len(topview_xpos)):          
@@ -140,8 +174,10 @@ def HandOfGod():
             show_top_fit = False
             find_theta = False
             show_vertical_line = False
+
         if key==ord('q'):
             break
+
         # displaying everything
         cv2.imshow('sideview_frame',sideview_frame)
         cv2.imshow('topview_frame',topview_frame)
@@ -149,5 +185,16 @@ def HandOfGod():
         cv2.imshow("sideview_mask_ball",sideview_mask_ball)
     cv2.waitKey(0)
     cv2.destroyAllWindows()
+
+def convergence_check(current_prediction, new_prediction, current_time, isprint):
+    convergence_threshold = 1
+    new_time = time.time()
+    rate_of_change = abs(new_prediction-current_prediction)/(new_time-current_time)
+    if isprint:
+        print("rate_of_change: ", rate_of_change)
+    if (rate_of_change < convergence_threshold): # if we have converged
+        return True
+    else:
+        return False
 
 HandOfGod()

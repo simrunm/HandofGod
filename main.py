@@ -49,7 +49,8 @@ def main(arduino):
 
     #     WriteArduino(arduino,command)
 
-    real_x,real_y = HandOfGod()
+    # real_x,real_y = HandOfGod()
+    real_x,real_y = 10,10
     # print(real_x, real_y)
     MoveMotors(arduino,convert(real_x,real_y)) # input the final x y 
         #break

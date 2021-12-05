@@ -38,7 +38,7 @@ opcodes = {
   "T-X":   b'\x00\x30',
   "T-Y":   b'\x00\x40',
   "X":     b'\x00\x50',
-  "Y":     b'\x00\x50',
+  "Y":     b'\x00\x60',
   "READY": b'\x00\x70',
 }
 
@@ -69,7 +69,7 @@ def MoveMotors(arduino, location: tuple):
 
 def main(arduino):
     # the zero command is just two bytes of 0s
-    arduino.write(bytearray(b'\x00x00'))
+    arduino.write(bytearray(b'\x00\x00'))
     time.sleep(5) 
     # while True:
     #     command = input("Enter a command: ") # Taking input from user

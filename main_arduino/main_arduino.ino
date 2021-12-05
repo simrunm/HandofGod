@@ -125,6 +125,14 @@ void setup() {
   pinMode(TOP_MOTOR_DIR, OUTPUT);
   pinMode(TOP_MOTOR_DIR, OUTPUT);
 
+  // leds
+  pinMode(A0, OUTPUT);
+  pinMode(A1, OUTPUT);
+  pinMode(A2, OUTPUT);
+  digitalWrite(A0, HIGH);
+  digitalWrite(A1, HIGH);
+  digitalWrite(A2, HIGH);
+
   // Initialize Stepper Motors
   stepperR.connectToPins(RIGHT_MOTOR_STEP, RIGHT_MOTOR_DIR); 
   stepperL.connectToPins(LEFT_MOTOR_STEP, LEFT_MOTOR_DIR);
@@ -241,7 +249,14 @@ void zero_all(){
 
 
 void move(float x_target, float y_target){
-  // swap x directin
+  #ifdef DEBUG
+  Serial.println("move: ");
+  Serial.println(x_target);
+  Serial.println(y_target);
+  Serial.println(x);
+  Serial.println(y);
+  #endif
+  // swap x direction
   x_target = -x_target;
 
   // prevent from crashing gantry
@@ -258,9 +273,16 @@ void move(float x_target, float y_target){
   long x_steps = dx * (1/(spool_diameter*3.14)) * (steps_per_rotation);
   long y_steps = dy * (1/(spool_diameter*3.14)) * (steps_per_rotation);
 
-  long steps_T = y_steps;
+  long steps_T = -(y_steps);
   long steps_L = x_steps + y_steps;
-  long steps_R = x_steps - y_steps;
+  long steps_R = -(x_steps - y_steps);
+
+  #ifdef DEBUG
+  Serial.println("steps:");
+  Serial.println(steps_T);
+  Serial.println(steps_L);
+  Serial.println(steps_R);
+  #endif
 
   float speedInStepsPerSecond = 5000;
   float accelerationInStepsPerSecondPerSecond = 4500; // tested up to 5000
@@ -278,6 +300,9 @@ void loop() {
   // number of bytes in the serial buffer
   bytes = Serial.available();
   if (bytes == 2) {
+    #ifdef DEBUG
+    digitalWrite(A0, LOW);
+    #endif
     // read a command into the buffer
     Serial.readBytes((char*)&buffer, 2);
     opcode = (buffer >> 12) & OPCODE_MASK;
@@ -334,6 +359,10 @@ void loop() {
   if (x_command && y_command) {
     x_target = x_command;
     y_target = y_command;
+    #ifdef DEBUG
+    Serial.println(x_target);
+    Serial.println(y_target);
+    #endif
     move(x_target,y_target);
     x_command = 0;
     y_command = 0;
@@ -454,7 +483,7 @@ void moveXYWithCoordination(long stepsR, long stepsL, long stepsT, float speedIn
   //
   stepperT.setSpeedInStepsPerSecond(speedInStepsPerSecond_T);
   stepperT.setAccelerationInStepsPerSecondPerSecond(accelerationInStepsPerSecondPerSecond_T);
-  stepperT.setupRelativeMoveInSteps(-stepsT);
+  stepperT.setupRelativeMoveInSteps(stepsT);
 
 
   //

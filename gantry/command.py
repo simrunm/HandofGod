@@ -1,7 +1,7 @@
 import serial
 
 # quick sample for sending commands as binary to the arduino
-port = serial.Serial('/dev/ttyACM0', 115200);
+port = serial.Serial('COM8', 115200);
 # this has to be manually synced with the firmware if the opcodes are changed
 opcodes = {
   "ZERO":  b'\x00\x00',

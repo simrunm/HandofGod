@@ -1,4 +1,5 @@
 import serial
+from time import sleep
 
 # quick sample for sending commands as binary to the arduino
 port = serial.Serial('/dev/ttyACM0', 115200);
@@ -10,7 +11,7 @@ opcodes = {
   "T-X":   b'\x00\x30',
   "T-Y":   b'\x00\x40',
   "X":     b'\x00\x50',
-  "Y":     b'\x00\x50',
+  "Y":     b'\x00\x60',
   "READY": b'\x00\x70',
 }
 
@@ -31,3 +32,10 @@ def send_position(x, y):
   port.write(y_packet);
   print(y_packet.hex())
   print(f"\"{y_packet.decode('utf-8')}\"")
+
+zero_packet = b'\x00\x00'
+port.write(zero_packet)
+print(zero_packet.hex())
+print(zero_packet.decode('utf-8'))
+sleep(10)
+send_position(50,50)

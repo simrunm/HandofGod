@@ -9,5 +9,4 @@ u_b_tape=np.array([180, 220, 220])
 real_dist = 610
 real_dist_cam_tape = 300
 cam_dist = 10 # measure and change
-calibration_ratio = 1.713
 y_val = 397.5

@@ -109,21 +109,24 @@ def HandOfGod():
                     cv2.circle(sideview_frame, (int(sideview_xpos[i]), int(sideview_ypos[i])),2,(255,0,0),-1)
                     real_side_x = sideview_xpos[i]*calibration_ratio # the side coordinate converted into real distances
                     # print("side x real distance: ", real_side_x)
-                    # predicted_landing_poses.append(real_side_x)
+                    predicted_landing_poses.append(real_side_x)
+
+                    if len(predicted_landing_poses) > 15:
+                        return 100, predicted_landing_poses[-1]
 
                     # if found_distance == False:
                     # if predicted landing pose has converged
-                    convergence_threshold = 30
-                    if blobFound:
-                        roc = trackingFunctions.convergence_check(previous_prediction, real_side_x, current_time, blobFound)
-                        if (abs(current_roc-roc) < convergence_threshold):
-                            print("we have converged")
-                            return (100,real_side_x)
-                    # if hasn't converged
-                    else:
-                        current_time = time.time()
-                        previous_prediction = real_side_x
-                        current_roc = roc
+                    # convergence_threshold = 30
+                    # if blobFound:
+                    #     roc = trackingFunctions.convergence_check(previous_prediction, real_side_x, current_time, blobFound)
+                    #     if (abs(current_roc-roc) < convergence_threshold):
+                    #         print("we have converged")
+                    #         return (100,real_side_x)
+                    # # if hasn't converged
+                    # else:
+                    #     current_time = time.time()
+                    #     previous_prediction = real_side_x
+                    #     current_roc = roc
                     
                     # TODO Find a way to send over a good final point and return it here
                     # if len(real_val) >= 30:
@@ -179,6 +182,6 @@ def HandOfGod():
         cv2.imshow("topview_mask_ball",topview_mask_ball)
         cv2.imshow("sideview_mask_ball",sideview_mask_ball)
     cv2.waitKey(0)
-    cv2.destroyAllWindows()
+    # cv2.destroyAllWindows()
 
 # print("prediction: ", HandOfGod())

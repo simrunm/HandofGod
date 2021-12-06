@@ -8,7 +8,7 @@ def InitializeSerial():
     Returns: Arduino serial object
     '''
     print('Connecting to Arduino')
-    arduino = serial.Serial("/dev/ttyACM0",115200, timeout=.1)
+    arduino = serial.Serial("COM8",115200, timeout=.1)
     time.sleep(3)
     print('Connected to Arduino')
     print('To command gantry, first zero axis with [Zero] command, then command location with string [X---Y---]')
@@ -49,5 +49,5 @@ def main(arduino):
 
 if __name__ == "__main__":
     arduino = InitializeSerial()
-    #MoveMotors(arduino,(300,300))
+    # MoveMotors(arduino,(100,380))
     main(arduino)

@@ -3,7 +3,7 @@ from time import sleep
 from handOfGod import HandOfGod
 
 # quick sample for sending commands as binary to the arduino
-port = serial.Serial('COM8', 115200);
+port = serial.Serial('/dev/ttyACM0', 115200);
 # this has to be manually synced with the firmware if the opcodes are changed
 opcodes = {
   "ZERO":  b'\x00\x00',
@@ -54,9 +54,9 @@ port.write(zero_packet)
 print(zero_packet.hex())
 print(zero_packet.decode('utf-8'))
 sleep(2)
-real_x,real_y = HandOfGod()
-print("real_x: ", real_x, "real_y: ", real_y)
+#real_x,real_y = HandOfGod()
+#print("real_x: ", real_x, "real_y: ", real_y)
 # MoveMotors(arduino,(100,100)) # input the final x y 
-print(real_x, convert(real_x, real_y))
-send_position(int(real_x), int(convert(real_x, real_y))) # input the final x y 
-# send_position(100,378)
+#print(real_x, convert(real_x, real_y))
+#send_position(int(real_x), int(convert(real_x, real_y))) # input the final x y 
+send_position(100,378)

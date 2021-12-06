@@ -11,8 +11,9 @@ def InitializeSerial():
 
     Returns: Arduino serial object
     '''
-    arduino = serial.Serial("/dev/ttyACM0",115200, timeout=.1)
-    for i in tqdm(range(100), desc = 'Connecting to Arduino'):
+    #arduino = serial.Serial("/dev/ttyACM0",115200, timeout=.1)
+    arduino = serial.Serial("COM8",115200, timeout=.1)
+    for i in tqdm(range(100), ascii= "---------#", desc = 'Connecting to Arduino'):
         time.sleep(.025)
    
     
@@ -87,20 +88,20 @@ def main():
     arduino = InitializeSerial()
     # the zero command is just two bytes of 0s
     arduino.write(bytearray(b'\x00\x00'))
-    time.sleep(5) 
+    time.sleep(6) 
     
     
     MoveMotors(arduino,(185,205))
     time.sleep(1)
     print('Axis zeroed and gantry centered')
 
-    real_x = int(input("X: "))
-    real_y = int(input("Y: "))
-    MoveMotors(arduino,(real_x,real_y))
+    # real_x = int(input("X: "))
+    # real_y = int(input("Y: "))
+    # MoveMotors(arduino,(real_x,real_y))
 
-    #real_x,real_y = HandOfGod()
-    #print("real_x: ", real_x, "real_y: ", real_y)
-    #MoveMotors(arduino,convert(real_x, real_y)) # input the final x y 
+    real_x,real_y = HandOfGod()
+    print("real_x: ", real_x, "real_y: ", real_y)
+    MoveMotors(arduino,convert(real_x, real_y)) # input the final x y 
         #break
     
 

@@ -1,6 +1,8 @@
 import serial
 import time
 from handOfGod import HandOfGod
+from tqdm import tqdm
+
 
 
 def InitializeSerial():
@@ -9,11 +11,10 @@ def InitializeSerial():
 
     Returns: Arduino serial object
     '''
-    print('Connecting to Arduino')
-    arduino = serial.Serial("COM8",115200, timeout=.1)
-    time.sleep(3)
-    print('Connected to Arduino')
-    print('To command gantry, first zero axis with [Zero] command, then command location with string [X---Y---]')
+    arduino = serial.Serial("/dev/ttyACM0",115200, timeout=.1)
+    for i in tqdm(range(100), desc = 'Connecting to Arduino'):
+        time.sleep(.025)
+   
     
     return arduino
 
@@ -67,21 +68,6 @@ def MoveMotors(arduino, location: tuple):
     y_packet = ORbytes(y_data, opcodes["Y"])
     arduino.write(y_packet);
 
-def main(arduino):
-    # the zero command is just two bytes of 0s
-    arduino.write(bytearray(b'\x00\x00'))
-    time.sleep(5) 
-    # while True:
-    #     command = input("Enter a command: ") # Taking input from user
-
-    #     WriteArduino(arduino,command)
-
-    # real_x,real_y = HandOfGod()
-    # print("real_x: ", real_x, "real_y: ", real_y)
-    MoveMotors(arduino,(10,10)) # input the final x y 
-    # MoveMotors(arduino,convert(real_x, real_y)) # input the final x y 
-        #break
-
 def convert(x,y):
     """
     Convert from real life x and y distance to x, y coordinate on the gantry.
@@ -90,14 +76,33 @@ def convert(x,y):
     370, 410 origin in bottom right corner
     460mm, 500mm
 
-    distance from sideframe edge to gantry 550mm
+    distance from sideframe edge to gantry 620*2=1240
     """
-    y = y - 550
+    y = y - 1240
     y = y * (410/500)
     print("converted x: ", x, "converted y: ", y)
     return 100,100
 
-if __name__ == "__main__":
+def main():
     arduino = InitializeSerial()
-    #MoveMotors(arduino,(300,300))
-    main(arduino)
+    # the zero command is just two bytes of 0s
+    arduino.write(bytearray(b'\x00\x00'))
+    time.sleep(5) 
+    
+    
+    MoveMotors(arduino,(185,205))
+    time.sleep(1)
+    print('Axis zeroed and gantry centered')
+
+    real_x = int(input("X: "))
+    real_y = int(input("Y: "))
+    MoveMotors(arduino,(real_x,real_y))
+
+    #real_x,real_y = HandOfGod()
+    #print("real_x: ", real_x, "real_y: ", real_y)
+    #MoveMotors(arduino,convert(real_x, real_y)) # input the final x y 
+        #break
+    
+
+if __name__ == "__main__":
+    main()

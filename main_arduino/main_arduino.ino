@@ -274,7 +274,7 @@ void move(float x_target, float y_target){
   long y_steps = dy * (1/(spool_diameter*3.14)) * (steps_per_rotation);
 
   long steps_T = -(y_steps);
-  long steps_L = x_steps + y_steps;
+  long steps_L = -(x_steps + y_steps);
   long steps_R = -(x_steps - y_steps);
 
   #ifdef DEBUG

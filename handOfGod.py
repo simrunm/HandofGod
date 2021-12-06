@@ -43,6 +43,7 @@ def HandOfGod():
     real_dist = 610
     calibration_ratio = 1.713
     y_val = 397.5
+    # start_time = []
     roc = 0
     roroc_threshold = 10
 
@@ -79,6 +80,7 @@ def HandOfGod():
         if (do_fit):
             # SIDEVIEW -------------------------------------------------------------------
             if len(sideview_centroid_x) >=3:
+                # start_time.append(time.time())              
                 x_list = np.array(sideview_centroid_x); y_list = np.array(sideview_centroid_y)
                 fit_params, pcov = scipy.optimize.curve_fit(calculateBallPath.parabola, x_list,y_list)
                 y_fit = calculateBallPath.parabola(x_list, *fit_params)
@@ -111,8 +113,9 @@ def HandOfGod():
                     # print("side x real distance: ", real_side_x)
                     predicted_landing_poses.append(real_side_x)
 
-                    if len(predicted_landing_poses) > 15:
-                        return 100, predicted_landing_poses[-1]
+                    # if end time - start time is greater than two seconds, return last point
+                if len(predicted_landing_poses) > 20:
+                    return 100, predicted_landing_poses[-1]
 
                     # if found_distance == False:
                     # if predicted landing pose has converged
@@ -184,4 +187,20 @@ def HandOfGod():
     cv2.waitKey(0)
     # cv2.destroyAllWindows()
 
-# print("prediction: ", HandOfGod())
+def convert(x,y):
+    """
+    Convert from real life x and y distance to x, y coordinate on the gantry.
+
+    gantry dimensions:
+    370, 410 origin in bottom right corner
+    460mm, 500mm
+
+    distance from sideframe edge to gantry 620*2=1240
+    """
+    y = y - 1240
+    y = y * (410/500)
+    print("converted x: ", x, "converted y: ", y)
+    return 100,y
+
+x, y = HandOfGod()
+convert(x, y)

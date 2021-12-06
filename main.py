@@ -10,7 +10,7 @@ def InitializeSerial():
     Returns: Arduino serial object
     '''
     print('Connecting to Arduino')
-    arduino = serial.Serial("COM8",115200, timeout=.1)
+    arduino = serial.Serial("/dev/ttyACM0",115200, timeout=.1)
     time.sleep(3)
     print('Connected to Arduino')
     print('To command gantry, first zero axis with [Zero] command, then command location with string [X---Y---]')
@@ -76,7 +76,8 @@ def main(arduino):
 
     #     WriteArduino(arduino,command)
 
-    real_x,real_y = HandOfGod()
+    #real_x,real_y = HandOfGod()
+    real_x, real_y = 100, 100
     print("real_x: ", real_x, "real_y: ", real_y)
     # MoveMotors(arduino,(100,100)) # input the final x y 
     MoveMotors(arduino,convert(real_x, real_y)) # input the final x y 
@@ -95,7 +96,7 @@ def convert(x,y):
     y = y - 1240
     y = y * (410/500)
     print("converted x: ", x, "converted y: ", y)
-    return 100,y
+    return 100,100
 
 if __name__ == "__main__":
     arduino = InitializeSerial()

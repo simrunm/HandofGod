@@ -76,10 +76,10 @@ def main(arduino):
 
     #     WriteArduino(arduino,command)
 
-    # real_x,real_y = HandOfGod()
-    # print("real_x: ", real_x, "real_y: ", real_y)
-    MoveMotors(arduino,(10,10)) # input the final x y 
-    # MoveMotors(arduino,convert(real_x, real_y)) # input the final x y 
+    real_x,real_y = HandOfGod()
+    print("real_x: ", real_x, "real_y: ", real_y)
+    # MoveMotors(arduino,(100,100)) # input the final x y 
+    MoveMotors(arduino,convert(real_x, real_y)) # input the final x y 
         #break
 
 def convert(x,y):
@@ -90,12 +90,12 @@ def convert(x,y):
     370, 410 origin in bottom right corner
     460mm, 500mm
 
-    distance from sideframe edge to gantry 550mm
+    distance from sideframe edge to gantry 620*2=1240
     """
-    y = y - 550
+    y = y - 1240
     y = y * (410/500)
     print("converted x: ", x, "converted y: ", y)
-    return 100,100
+    return 100,y
 
 if __name__ == "__main__":
     arduino = InitializeSerial()

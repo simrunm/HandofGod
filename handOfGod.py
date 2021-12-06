@@ -118,7 +118,7 @@ def HandOfGod():
                         roc = trackingFunctions.convergence_check(previous_prediction, real_side_x, current_time, blobFound)
                         if (abs(current_roc-roc) < convergence_threshold):
                             print("we have converged")
-                            return (200,real_side_x)
+                            return (100,real_side_x)
                     # if hasn't converged
                     else:
                         current_time = time.time()

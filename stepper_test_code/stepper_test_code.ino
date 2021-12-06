@@ -7,8 +7,8 @@
  *  
  */
 // defines pins numbers
-const int stepPin = 3; 
-const int dirPin = 2;
+const int stepPin = 6; 
+const int dirPin = 7;
 int counter ;
 long prevmillis = 0;
 float time_taken;
@@ -29,9 +29,9 @@ void stepping(int revs)  {
   
   for(float x = 0; x < 200*revs; x++) {
     digitalWrite(stepPin,HIGH); 
-    delayMicroseconds(498); 
+    delayMicroseconds(600); 
     digitalWrite(stepPin,LOW); 
-    delayMicroseconds(498); 
+    delayMicroseconds(600); 
    // Serial.print("Rev Completion: ");   //comment these out for speed
     //Serial.println(x/200);  //comment these out for speed
   }
@@ -45,11 +45,11 @@ void loop() {
    );
    counter += 1;
    }
-unsigned long currentMillis = millis();
-time_taken = currentMillis-prevmillis;
-Serial.print("Revs per sec: ");
-Serial.println(100/(time_taken/1000));
-delay(50000);
+//unsigned long currentMillis = millis();
+//time_taken = currentMillis-prevmillis;
+ //Serial.print("Revs per sec: ");
+ //Serial.println(100/(time_taken/1000));
+ //delay(50000);
 
  
    

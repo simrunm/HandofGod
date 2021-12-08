@@ -14,10 +14,16 @@ from firmware import MoveMotors
 from firmware import InitializeGantry
 
 def HandOfGod():
+    # Windows Config
     sideview = cv2.VideoCapture()
     sideview.open(1, cv2.CAP_DSHOW)
     topview = cv2.VideoCapture()
     topview.open(2, cv2.CAP_DSHOW)
+
+    # Ubuntu Config
+    #sideview = cv2.VideoCapture('/dev/video2')
+    #topview = cv2.VideoCapture('/dev/video2')
+
     found_distance = False
     show_top_fit = False
     show_side_fit = False

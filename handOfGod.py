@@ -96,12 +96,20 @@ def HandOfGod():
                 fit_params, pcov = scipy.optimize.curve_fit(calculateBallPath.parabola, x_list,y_list)
                 y_fit = calculateBallPath.parabola(x_list, *fit_params)
                 length_centroid = len(x_list//2)
+                
+                # OTHER THING TO TRY OUT-----------------------------------
+                # len_centroid_x = len(sideview_centroid_x)
+                # x1, x2, x3, y1, y2, y3 = sideview_centroid_x[0], sideview_centroid_x[len_centroid_x/2], sideview_centroid_x[-1], sideview_centroid_y[0], sideview_centroid_y[len_centroid_x/2], sideview_centroid_y[-1]
+                # -----------------------------------
                 x1, x2, x3, y1, y2, y3 = x_list[0], x_list[length_centroid//2], x_list[length_centroid - 1], y_fit[0], y_fit[length_centroid//2], y_fit[length_centroid - 1]            
+                
                 denom = (x1-x2) * (x1-x3) * (x2-x3)
                 if not np.allclose(denom, 0, atol=0.25):
                     a,b,c = calculateBallPath.calc_parabola_vertex(x1, x2, x3, y1, y2, y3)        
-                    [sideview_xpos,sideview_ypos] = calculateBallPath.find_parabola(a,b,c)
-                    show_side_fit = True
+                    # checking to see if it calculated a long parabola
+                    if -b/2*a > sideview_centroid_x[-1]:
+                        [sideview_xpos,sideview_ypos] = calculateBallPath.find_parabola(a,b,c)
+                        show_side_fit = True
         
             # # TOPVIEW -------------------------------------------------------------------------------------------------       
             # if len(topview_centroid_x) == 1:
@@ -144,11 +152,6 @@ def HandOfGod():
                     #     previous_prediction = real_side_x
                     #     current_roc = roc
                     
-                    # TODO Find a way to send over a good final point and return it here
-                    # if len(real_val) >= 30:
-                    #     return True
-                    #     found_distance = True
-
                 # Plotting all the points parabola points that are not the end coordinate
                 else:   
                     if not math.isnan(sideview_xpos[i]):        

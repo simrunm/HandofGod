@@ -9,6 +9,9 @@ import time
 import math
 from constants import *
 import time
+from firmware import InitializeSerial
+from firmware import MoveMotors
+from firmware import InitializeGantry
 
 def HandOfGod():
     sideview = cv2.VideoCapture()
@@ -40,12 +43,14 @@ def HandOfGod():
     u_b_top=np.array([80, 220, 220])
     l_b_tape=np.array([150, 130, 130])
     u_b_tape=np.array([180, 220, 220])
-    real_dist = 610
-    calibration_ratio = 1.713
-    y_val = 397.5
+    real_dist = 610 # real life length between pink tape
+    calibration_ratio = 1.789 #1.713
+    y_val = 364.5 #397.5
     # start_time = []
     roc = 0
     roroc_threshold = 10
+    arduino = InitializeSerial()
+    InitializeGantry(arduino)
 
     if sideview.isOpened():
         width  = sideview.get(cv2.CAP_PROP_FRAME_WIDTH)   # float `width`
@@ -79,7 +84,7 @@ def HandOfGod():
         # Finding all the points in the parabola for sideview and a straight line for topview. 
         if (do_fit):
             # SIDEVIEW -------------------------------------------------------------------
-            if len(sideview_centroid_x) >=3:
+            if len(sideview_centroid_x) >=5:
                 # start_time.append(time.time())              
                 x_list = np.array(sideview_centroid_x); y_list = np.array(sideview_centroid_y)
                 fit_params, pcov = scipy.optimize.curve_fit(calculateBallPath.parabola, x_list,y_list)
@@ -114,8 +119,10 @@ def HandOfGod():
                     predicted_landing_poses.append(real_side_x)
 
                     # if end time - start time is greater than two seconds, return last point
-                if len(predicted_landing_poses) > 20:
-                    return 100, predicted_landing_poses[-1]
+                if len(predicted_landing_poses) > 70:
+                    # return 100, predicted_landing_poses[-1])
+                    MoveMotors(arduino, convert(100, predicted_landing_poses[-1]))
+                    return True
 
                     # if found_distance == False:
                     # if predicted landing pose has converged
@@ -164,6 +171,7 @@ def HandOfGod():
             if sideview_frame_dist != 0:
                 calibration_ratio = real_dist/sideview_frame_dist                
                 print("calibration ratio: ", calibration_ratio)
+                print("y_val: ", y_val)
         if key==ord('c'):
             # clear path of centroids
             sideview_centroid_x = []
@@ -185,7 +193,7 @@ def HandOfGod():
         cv2.imshow("topview_mask_ball",topview_mask_ball)
         cv2.imshow("sideview_mask_ball",sideview_mask_ball)
     cv2.waitKey(0)
-    # cv2.destroyAllWindows()
+    cv2.destroyAllWindows()
 
 def convert(x,y):
     """
@@ -195,12 +203,14 @@ def convert(x,y):
     370, 410 origin in bottom right corner
     460mm, 500mm
 
-    distance from sideframe edge to gantry 620*2=1240
+    distance from sideframe edge to gantry 1516
     """
-    y = y - 1240
-    y = y * (410/500)
+    y = y - 1516
+    y = y * (410/460)
     print("converted x: ", x, "converted y: ", y)
-    return 100,y
+    if (y < 0):
+        return 185,205
+    else:
+        return 185,int(y)
 
-x, y = HandOfGod()
-convert(x, y)
+HandOfGod()

@@ -166,7 +166,7 @@ void stop_y() {
 }
 
 void zero_x() {
-  #ifdef DEBUG
+  #ifdef DEBUG_PRINT
   Serial.println("Zeroing X");
   #endif
   x_zeroed = 0;
@@ -187,7 +187,7 @@ void zero_x() {
 }
 
 void zero_y() {
-  #ifdef DEBUG
+  #ifdef DEBUG_PRINT
   Serial.println("Zeroing Y");
   #endif
   y_zeroed = 0;
@@ -249,12 +249,15 @@ void zero_all(){
 
 
 void move(float x_target, float y_target){
-  #ifdef DEBUG
+  #ifdef DEBUG_PRINT
   Serial.println("move: ");
   Serial.println(x_target);
   Serial.println(y_target);
   Serial.println(x);
   Serial.println(y);
+  #endif
+  #ifdef DEBUG
+  digitalWrite(A0, LOW);
   #endif
   // swap x direction
   x_target = -x_target;
@@ -274,10 +277,10 @@ void move(float x_target, float y_target){
   long y_steps = dy * (1/(spool_diameter*3.14)) * (steps_per_rotation);
 
   long steps_T = -(y_steps);
-  long steps_L = -(x_steps + y_steps);
+  long steps_L = x_steps + y_steps;
   long steps_R = -(x_steps - y_steps);
 
-  #ifdef DEBUG
+  #ifdef DEBUG_PRINT
   Serial.println("steps:");
   Serial.println(steps_T);
   Serial.println(steps_L);
@@ -290,6 +293,10 @@ void move(float x_target, float y_target){
   tention();
   x = x_target;
   y = y_target;
+
+  #ifdef DEBUG
+  digitalWrite(A0, HIGH);
+  #endif
   
 }
 
@@ -301,7 +308,7 @@ void loop() {
   bytes = Serial.available();
   if (bytes == 2) {
     #ifdef DEBUG
-    digitalWrite(A0, LOW);
+    digitalWrite(A2, LOW);
     #endif
     // read a command into the buffer
     Serial.readBytes((char*)&buffer, 2);
@@ -314,7 +321,7 @@ void loop() {
     }
     switch (opcode) {
       case (C_ZERO):
-        #ifdef DEBUG
+        #ifdef DEBUG_PRINT
         Serial.println("ZEROING");
         #endif
         zero_all();
@@ -340,16 +347,17 @@ void loop() {
         // unused opcode
         break;
     }
-    #ifdef DEBUG
+    #ifdef DEBUG_PRINT
     Serial.println("New command:");
     Serial.println(String((int)opcode, HEX));
     Serial.println(String((int)data));
     Serial.println(String(buffer, HEX));
+    digitalWrite(A2, HIGH);
     #endif
   } else if (bytes > 2) {
     // check if this error mode ever occurs, might be unnecessary!
     Serial.read();
-    #ifdef DEBUG
+    #ifdef DEBUG_PRINT
     Serial.println("ERROR: READ > 2 BYTES");
     #endif
   }
@@ -359,7 +367,7 @@ void loop() {
   if (x_command && y_command) {
     x_target = x_command;
     y_target = y_command;
-    #ifdef DEBUG
+    #ifdef DEBUG_PRINT
     Serial.println(x_target);
     Serial.println(y_target);
     #endif

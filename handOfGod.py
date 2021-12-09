@@ -11,7 +11,8 @@ from constants import *
 import time
 from firmware import InitializeSerial
 from firmware import MoveMotors
-from firmware import InitializeGantry
+from firmware import CenterGantry
+from firmware import ZeroGantry
 
 def HandOfGod():
     # Windows Config
@@ -52,11 +53,11 @@ def HandOfGod():
     real_dist = 610 # real life length between pink tape
     calibration_ratio = 1.789 #1.713
     y_val = 364.5 #397.5
+    cam_dist = 1516-(610+270)
+    previous_pred = (185,205)
     # start_time = []
     roc = 0
     roroc_threshold = 10
-    arduino = InitializeSerial()
-    InitializeGantry(arduino)
 
     if sideview.isOpened():
         width  = sideview.get(cv2.CAP_PROP_FRAME_WIDTH)   # float `width`
@@ -90,7 +91,7 @@ def HandOfGod():
         # Finding all the points in the parabola for sideview and a straight line for topview. 
         if (do_fit):
             # SIDEVIEW -------------------------------------------------------------------
-            if len(sideview_centroid_x) >=5:
+            if len(sideview_centroid_x) >=7:
                 # start_time.append(time.time())              
                 x_list = np.array(sideview_centroid_x); y_list = np.array(sideview_centroid_y)
                 fit_params, pcov = scipy.optimize.curve_fit(calculateBallPath.parabola, x_list,y_list)
@@ -98,29 +99,30 @@ def HandOfGod():
                 length_centroid = len(x_list//2)
                 
                 # OTHER THING TO TRY OUT-----------------------------------
-                # len_centroid_x = len(sideview_centroid_x)
-                # x1, x2, x3, y1, y2, y3 = sideview_centroid_x[0], sideview_centroid_x[len_centroid_x/2], sideview_centroid_x[-1], sideview_centroid_y[0], sideview_centroid_y[len_centroid_x/2], sideview_centroid_y[-1]
+                len_centroid_x = len(sideview_centroid_x)
+                x1, x2, x3, y1, y2, y3 = sideview_centroid_x[0], sideview_centroid_x[len_centroid_x//2], sideview_centroid_x[-1], sideview_centroid_y[0], sideview_centroid_y[len_centroid_x//2], sideview_centroid_y[-1]
                 # -----------------------------------
-                x1, x2, x3, y1, y2, y3 = x_list[0], x_list[length_centroid//2], x_list[length_centroid - 1], y_fit[0], y_fit[length_centroid//2], y_fit[length_centroid - 1]            
+                # x1, x2, x3, y1, y2, y3 = x_list[0], x_list[length_centroid//2], x_list[length_centroid - 1], y_fit[0], y_fit[length_centroid//2], y_fit[length_centroid - 1]            
                 
                 denom = (x1-x2) * (x1-x3) * (x2-x3)
                 if not np.allclose(denom, 0, atol=0.25):
                     a,b,c = calculateBallPath.calc_parabola_vertex(x1, x2, x3, y1, y2, y3)        
                     # checking to see if it calculated a long parabola
-                    if -b/2*a > sideview_centroid_x[-1]:
-                        [sideview_xpos,sideview_ypos] = calculateBallPath.find_parabola(a,b,c)
-                        show_side_fit = True
+                    
+                    [sideview_xpos,sideview_ypos] = calculateBallPath.find_parabola(a,b,c)
+                    show_side_fit = True
         
             # # TOPVIEW -------------------------------------------------------------------------------------------------       
-            # if len(topview_centroid_x) == 1:
-            #     vert_x = topview_centroid_x[0]
-            #     show_vertical_line = True
-            #     show_horizantal_line = True
-            # if len(topview_centroid_x) >= 2:
-            #     x1, x2, y1, y2 = topview_centroid_x[0], topview_centroid_x[-1], topview_centroid_y[0], topview_centroid_y[-1]
-            #     m,b = calculateBallPath.calc_linear_line(x1, x2, y1, y2)            
-            #     [topview_xpos,topview_ypos] = calculateBallPath.find_line(m,b)     
-            #     show_top_fit = True
+            if len(topview_centroid_x) == 1:
+                vert_x = topview_centroid_x[0]
+                show_vertical_line = True
+            if len(topview_centroid_x) >= 3:
+                x1, x2, y1, y2 = topview_centroid_x[0], topview_centroid_x[-1], topview_centroid_y[0], topview_centroid_y[-1]
+                denom = x2-x1
+                if not np.allclose(denom, 0, atol=0.01):
+                    m,b = calculateBallPath.calc_linear_line(x1, x2, y1, y2)            
+                    [topview_xpos,topview_ypos] = calculateBallPath.find_line(m,b)     
+                    show_top_fit = True
 
         # Plotting all the calculated points and finding the x and y coordinates
         # SIDEVIEW -----------------------------------------------------------------
@@ -133,10 +135,10 @@ def HandOfGod():
                     predicted_landing_poses.append(real_side_x)
 
                     # if end time - start time is greater than two seconds, return last point
-                if len(predicted_landing_poses) > 70:
+                if len(predicted_landing_poses) != 0:
+                    # if -b/2*a > sideview_centroid_x[-1]:
                     # return 100, predicted_landing_poses[-1])
-                    MoveMotors(arduino, convert(100, predicted_landing_poses[-1]))
-                    return True
+                    found_distance = True
 
                     # if found_distance == False:
                     # if predicted landing pose has converged
@@ -158,19 +160,20 @@ def HandOfGod():
                         cv2.circle(sideview_frame, (int(sideview_xpos[i]), int(sideview_ypos[i])),2,(0,255,0),-1)
         
         # TOPVIEW --------------------------------------------------------------------------------------
-        #     for i in range(len(topview_xpos)):          
-        #         cv2.circle(topview_frame, (int(topview_xpos[i]), int(topview_ypos[i])),2,(0,255,0),-1)
-        #         find_theta = True
-        # if (show_vertical_line):        
-        #     for i in range(int(height)):
-        #         cv2.circle(topview_frame, (int(vert_x), i),2,(0,255,255),-1)
-        # if(find_theta):
-        #     theta = trackingFunctions.finding_theta(vert_x,3*height/4,m,b,topview_centroid_y[0]) # centroid_y[0] is the intersection of the two lines  
-        #     if(found_distance): # if program has determined target x and y
-        #         top_x = trackingFunctions.find_x(theta, real_side_x, cam_dist) # top x is x and side x is y from drawing      
-        #         print("x: ", top_x, "y: ", real_side_x)
-        #         return top_x, real_side_x
-                
+        if (show_top_fit):
+            for i in range(len(topview_xpos)):          
+                cv2.circle(topview_frame, (int(topview_xpos[i]), int(topview_ypos[i])),2,(0,255,0),-1)
+                find_theta = True
+        if (show_vertical_line):
+            for i in range(int(height)):
+                cv2.circle(topview_frame, (int(vert_x), i),2,(0,255,255),-1)
+        if(find_theta):
+            theta = trackingFunctions.finding_theta(vert_x,3*height/4,m,b,topview_centroid_y[0]) # centroid_y[0] is the intersection of the two lines  
+            if(found_distance): # if program has determined target x and y
+                top_x = trackingFunctions.find_x(theta, predicted_landing_poses[-1], cam_dist) # top x is x and side x is y from drawing      
+                print("x: ", top_x, "y: ", predicted_landing_poses[-1])
+                MoveMotors(arduino, convert(top_x, predicted_landing_poses[-1]))
+                return True
            
         # KEYBOARD COMMANDS
         if key==ord('a'):
@@ -199,8 +202,8 @@ def HandOfGod():
         # displaying everything
         cv2.imshow('sideview_frame',sideview_frame)
         cv2.imshow('topview_frame',topview_frame)
-        cv2.imshow("topview_mask_ball",topview_mask_ball)
-        cv2.imshow("sideview_mask_ball",sideview_mask_ball)
+        # cv2.imshow("topview_mask_ball",topview_mask_ball)
+        # cv2.imshow("sideview_mask_ball",sideview_mask_ball)
     cv2.waitKey(0)
     cv2.destroyAllWindows()
 
@@ -216,10 +219,18 @@ def convert(x,y):
     """
     y = y - 1516
     y = y * (410/460)
+    x = x + (460/2)
+    x = x * (370/460)
     print("converted x: ", x, "converted y: ", y)
-    if (y < 0):
+    if (x < 0) or (y < 0):
         return 185,205
     else:
-        return 185,int(y)
+        return int(x),int(y)
 
+def distance_between(prev, current):
+    return math.sqrt((current[1]-prev[1])**2 + (current[0]-prev[0])**2)
+
+arduino = InitializeSerial()
+ZeroGantry(arduino)
+CenterGantry(arduino)
 HandOfGod()

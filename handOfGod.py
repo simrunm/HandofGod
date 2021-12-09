@@ -133,7 +133,7 @@ def HandOfGod():
                     predicted_landing_poses.append(real_side_x)
 
                     # if end time - start time is greater than two seconds, return last point
-                if len(predicted_landing_poses) > 70:
+                if len(predicted_landing_poses) != 0:
                     # return 100, predicted_landing_poses[-1])
                     MoveMotors(arduino, convert(100, predicted_landing_poses[-1]))
                     return True

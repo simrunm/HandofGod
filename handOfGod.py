@@ -52,8 +52,9 @@ def HandOfGod():
     u_b_tape=np.array([180, 220, 220])
     real_dist = 610 # real life length between pink tape
     calibration_ratio = 1.789 #1.713
-    y_val = 364.5 #397.5
+    y_val = 265 #397.5
     cam_dist = 1516-(610+270)
+    timestamp_sideview_centroid_x = []
     previous_pred = (185,205)
     # start_time = []
     roc = 0
@@ -76,6 +77,8 @@ def HandOfGod():
         if not blobFound or np.allclose(x, 0, atol=0.25) or np.allclose(y, 0, atol=0.25):
             pass
         else:
+                   
+
             sideview_centroid_x.append(x)
             sideview_centroid_y.append(y)
         trackingFunctions.plot_points(sideview_centroid_x, sideview_centroid_y, sideview_frame)
@@ -91,6 +94,7 @@ def HandOfGod():
         # Finding all the points in the parabola for sideview and a straight line for topview. 
         if (do_fit):
             # SIDEVIEW -------------------------------------------------------------------
+
             if len(sideview_centroid_x) >=7:
                 # start_time.append(time.time())              
                 x_list = np.array(sideview_centroid_x); y_list = np.array(sideview_centroid_y)
@@ -127,13 +131,18 @@ def HandOfGod():
         # Plotting all the calculated points and finding the x and y coordinates
         # SIDEVIEW -----------------------------------------------------------------
         if (show_side_fit):            
-            for i in range(len(sideview_xpos)):
+            for i in range(300, -1, -1):
                 if y_val - 5 < sideview_ypos[i] < y_val + 5:
                     cv2.circle(sideview_frame, (int(sideview_xpos[i]), int(sideview_ypos[i])),2,(255,0,0),-1)
-                    real_side_x = sideview_xpos[i]*calibration_ratio # the side coordinate converted into real distances
-                    # print("side x real distance: ", real_side_x)
+                    print("frame x: ", sideview_xpos[i])
+                    real_side_x = (abs(sideview_xpos[i] - 208) * 410) / (208 - 76)# the side coordinate converted into real distances
+                    print("gantry: ", real_side_x)
                     predicted_landing_poses.append(real_side_x)
-
+                # Plotting all the points parabola points that are not the end coordinate
+                else:   
+                    if not math.isnan(sideview_xpos[i]):        
+                        cv2.circle(sideview_frame, (int(sideview_xpos[i]), int(sideview_ypos[i])),2,(0,255,0),-1)
+        
                     # if end time - start time is greater than two seconds, return last point
                 if len(predicted_landing_poses) != 0:
                     # if -b/2*a > sideview_centroid_x[-1]:
@@ -154,11 +163,7 @@ def HandOfGod():
                     #     previous_prediction = real_side_x
                     #     current_roc = roc
                     
-                # Plotting all the points parabola points that are not the end coordinate
-                else:   
-                    if not math.isnan(sideview_xpos[i]):        
-                        cv2.circle(sideview_frame, (int(sideview_xpos[i]), int(sideview_ypos[i])),2,(0,255,0),-1)
-        
+
         # TOPVIEW --------------------------------------------------------------------------------------
         if (show_top_fit):
             for i in range(len(topview_xpos)):          
@@ -170,9 +175,11 @@ def HandOfGod():
         if(find_theta):
             theta = trackingFunctions.finding_theta(vert_x,3*height/4,m,b,topview_centroid_y[0]) # centroid_y[0] is the intersection of the two lines  
             if(found_distance): # if program has determined target x and y
-                top_x = trackingFunctions.find_x(theta, predicted_landing_poses[-1], cam_dist) # top x is x and side x is y from drawing      
-                print("x: ", top_x, "y: ", predicted_landing_poses[-1])
-                MoveMotors(arduino, convert(top_x, predicted_landing_poses[-1]))
+                most_recent_prediction = predicted_landing_poses[-1]
+                top_x = trackingFunctions.find_x(theta, most_recent_prediction, cam_dist) # top x is x and side x is y from drawing      
+                print("post conversion x: ", top_x, "y: ", most_recent_prediction)
+                MoveMotors(arduino, (int(most_recent_prediction), 100))
+                # MoveMotors(arduino, convert(top_x, predicted_landing_poses[-1]))
                 return True
            
         # KEYBOARD COMMANDS
@@ -193,8 +200,11 @@ def HandOfGod():
             topview_centroid_x = []
             topview_centroid_y = []
             show_top_fit = False
+            show_side_fit= False
             find_theta = False
             show_vertical_line = False
+        if key==ord('p'):
+            print("x: ", sideview_centroid_x[-1], "y: ", sideview_centroid_y[-1])
 
         if key==ord('q'):
             break
@@ -232,5 +242,6 @@ def distance_between(prev, current):
 
 arduino = InitializeSerial()
 ZeroGantry(arduino)
-CenterGantry(arduino)
+# MoveMotors(arduino, (50,150))
+# CenterGantry(arduino)
 HandOfGod()

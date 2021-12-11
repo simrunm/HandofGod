@@ -211,12 +211,18 @@ def convert(x,y):
     gantry dimensions:
     370, 410 origin in bottom right corner
     460mm, 500mm
+    gantry 0 is frame 208 and gantry 410 is 76 in the y direction
 
     distance from sideframe edge to gantry 1516
     """
-    y = y - 1516
-    y = y * (410/460)
-    print("converted x: ", x, "converted y: ", y)
+    frame_diff = 208 - 76
+    new_y = abs(y - 208)
+    new_y * 410 / frame_diff
+
+
+    # y = y - 1516
+    # y = y * (410/460)
+    # print("converted x: ", x, "converted y: ", y)
     if (y < 0):
         return 185,205
     else:

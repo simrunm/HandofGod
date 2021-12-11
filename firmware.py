@@ -13,8 +13,6 @@ def InitializeSerial():
     arduino = serial.Serial("COM8",115200, timeout=.1)
     for i in tqdm(range(100), ascii= "---------#", desc = 'Connecting to Arduino'):
         time.sleep(.025)
-   
-    
     return arduino
 
 def ORbytes(abytes, bbytes):
@@ -79,12 +77,14 @@ def MoveMotors(arduino, location: tuple):
     y_packet = ORbytes(y_data, opcodes["Y"])
     arduino.write(y_packet);
 
-def InitializeGantry(arduino):
+def ZeroGantry(arduino):
     # the zero command is just two bytes of 0s
     arduino.write(bytearray(b'\x00\x00'))
-    time.sleep(6) 
+    time.sleep(6)
+    print('Axis zeroed')
     
+def CenterGantry(arduino):
     # moves it to the center
     MoveMotors(arduino,(185,205))
     time.sleep(1)
-    print('Axis zeroed and gantry centered')
+    print('Gantry centered')

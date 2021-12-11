@@ -29,7 +29,6 @@ def calc_linear_line(x1, x2, y1, y2):
     b = y1 - m * x1     
     return m,b
 
-
 def find_parabola(a,b,c):
     x_pos=np.arange(0,1000,1)
     y_pos=[]

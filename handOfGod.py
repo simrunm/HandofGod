@@ -125,7 +125,7 @@ def HandOfGod():
         # Plotting all the calculated points and finding the x and y coordinates
         # SIDEVIEW -----------------------------------------------------------------
         if (show_side_fit):            
-            for i in range(len(sideview_xpos)):
+            for i in range(300):
                 if y_val - 5 < sideview_ypos[i] < y_val + 5:
                     cv2.circle(sideview_frame, (int(sideview_xpos[i]), int(sideview_ypos[i])),2,(255,0,0),-1)
                     real_side_x = sideview_xpos[i]*calibration_ratio # the side coordinate converted into real distances
@@ -215,9 +215,8 @@ def convert(x,y):
 
     distance from sideframe edge to gantry 1516
     """
-    frame_diff = 208 - 76
-    new_y = abs(y - 208)
-    new_y * 410 / frame_diff
+
+    y = (abs(y - 208) * 410) / (208 - 76)
 
 
     # y = y - 1516

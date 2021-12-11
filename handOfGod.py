@@ -139,7 +139,7 @@ def HandOfGod():
                     print("gantry: ", real_side_x)
                     predicted_landing_poses.append(real_side_x)
                 # Plotting all the points parabola points that are not the end coordinate
-                else:   
+                else:
                     if not math.isnan(sideview_xpos[i]):        
                         cv2.circle(sideview_frame, (int(sideview_xpos[i]), int(sideview_ypos[i])),2,(0,255,0),-1)
         

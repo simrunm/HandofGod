@@ -52,7 +52,7 @@ def HandOfGod():
     u_b_tape=np.array([180, 220, 220])
     real_dist = 610 # real life length between pink tape
     calibration_ratio = 1.789 #1.713
-    y_val = 265 #397.5
+    y_val = 236 #397.5
     cam_dist = 1516-(610+270)
     timestamp_sideview_centroid_x = []
     previous_pred = (185,205)
@@ -95,7 +95,7 @@ def HandOfGod():
         if (do_fit):
             # SIDEVIEW -------------------------------------------------------------------
 
-            if len(sideview_centroid_x) >=7:
+            if len(sideview_centroid_x) >=8:
                 # start_time.append(time.time())              
                 x_list = np.array(sideview_centroid_x); y_list = np.array(sideview_centroid_y)
                 fit_params, pcov = scipy.optimize.curve_fit(calculateBallPath.parabola, x_list,y_list)
@@ -131,11 +131,11 @@ def HandOfGod():
         # Plotting all the calculated points and finding the x and y coordinates
         # SIDEVIEW -----------------------------------------------------------------
         if (show_side_fit):            
-            for i in range(300, -1, -1):
+            for i in range(300, 600):
                 if y_val - 5 < sideview_ypos[i] < y_val + 5:
                     cv2.circle(sideview_frame, (int(sideview_xpos[i]), int(sideview_ypos[i])),2,(255,0,0),-1)
                     print("frame x: ", sideview_xpos[i])
-                    real_side_x = (abs(sideview_xpos[i] - 208) * 410) / (208 - 76)# the side coordinate converted into real distances
+                    real_side_x = (abs(sideview_xpos[i] - 412) * 410) / (520 - 412)# the side coordinate converted into real distances
                     print("gantry: ", real_side_x)
                     predicted_landing_poses.append(real_side_x)
                 # Plotting all the points parabola points that are not the end coordinate
@@ -224,6 +224,7 @@ def convert(x,y):
     gantry dimensions:
     370, 410 origin in bottom right corner
     460mm, 500mm
+    412, 468, 520
 
     distance from sideframe edge to gantry 1516
     """

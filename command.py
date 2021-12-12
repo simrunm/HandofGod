@@ -69,19 +69,28 @@ def convert(x,y):
 #send_position(100,100)
 #sleep(5)
 #send_position(100, 370)
+max_x = 370
+max_y = 490
+#max_x = 200
+#max_y = 200
+
+half_x = max_x // 2;
+half_y = max_y // 2;
 if __name__ == "__main__":
-  send_position(185, 245);
+  send_position(0,0)
   sleep(3)
-  send_position(370, 490);
+  send_position(half_x, half_y);
   sleep(3)
-  send_position(185, 245);
+  send_position(max_x, max_y);
   sleep(3)
-  send_position(0, 490);
+  send_position(half_x, half_y);
   sleep(3)
-  send_position(185, 245);
+  send_position(0, max_y);
   sleep(3)
-  send_position(370, 0);
+  send_position(half_x, half_y);
   sleep(3)
-  send_position(185, 245);
+  send_position(max_x, 0);
+  sleep(3)
+  send_position(half_x, half_y);
   sleep(3)
   send_position(0, 0);

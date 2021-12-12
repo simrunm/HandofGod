@@ -19,6 +19,12 @@ opcodes = {
 def orbytes(abytes, bbytes):
   return bytes([int(a) | int(b) for a, b in zip(abytes[::-1], bbytes[::-1])][::-1])
 
+# example: command(opcodes["ZERO"], 100)
+def command(op, data):
+  data_bytes = data.to_bytes(2, 'little');
+  packet = orbytes(data_bytes, op);
+  port.write(packet);
+
 def send_position(x, y):
   # the arduino is little endian which makes byte stuff slightly unintuitive
   # send the x command

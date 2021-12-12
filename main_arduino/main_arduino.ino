@@ -217,6 +217,40 @@ void clear_motors(){
   digitalWrite(TOP_MOTOR_STEP, LOW);
 }
 
+void tension_dir(char op,short steps) {
+  for (int i = 0; i < steps; i++) {
+    switch(op) {
+      case C_TENSION_X_P:
+        digitalWrite(LEFT_MOTOR_DIR, LEFT_MOTOR_IN);
+        digitalWrite(LEFT_MOTOR_STEP, HIGH);
+        digitalWrite(LEFT_MOTOR_STEP, LOW);
+        break;
+      case C_TENSION_Y_P:
+        digitalWrite(TOP_MOTOR_DIR, TOP_MOTOR_IN);
+        digitalWrite(TOP_MOTOR_STEP, HIGH);
+        digitalWrite(TOP_MOTOR_STEP, LOW);
+        break;
+      case C_TENSION_X_N:
+        digitalWrite(RIGHT_MOTOR_DIR, RIGHT_MOTOR_IN);
+        digitalWrite(RIGHT_MOTOR_STEP, HIGH);
+        digitalWrite(RIGHT_MOTOR_STEP, LOW);
+        break;
+      case C_TENSION_Y_N:
+        digitalWrite(RIGHT_MOTOR_DIR, RIGHT_MOTOR_IN);
+        digitalWrite(LEFT_MOTOR_DIR, LEFT_MOTOR_IN);
+        digitalWrite(RIGHT_MOTOR_STEP, HIGH);
+        digitalWrite(LEFT_MOTOR_STEP, HIGH);
+        digitalWrite(RIGHT_MOTOR_STEP, LOW);
+        digitalWrite(LEFT_MOTOR_STEP, LOW);
+        break;
+      default:
+        break;
+      
+    }
+    delay(1000/(steps_per_rotation * zero_speed));
+  }
+}
+
 void tention(){
   digitalWrite(LEFT_MOTOR_DIR, LEFT_MOTOR_IN);
   digitalWrite(RIGHT_MOTOR_DIR, RIGHT_MOTOR_IN);
@@ -332,12 +366,10 @@ void loop() {
         zeroed = true;
         break;
       case (C_TENSION_X_P):
-        break;
       case (C_TENSION_X_N):
-        break;
       case (C_TENSION_Y_P):
-        break;
       case (C_TENSION_Y_N):
+        tension_dir(opcode, data);
         break;
       case (C_MOVE_X):
         x_command = data;

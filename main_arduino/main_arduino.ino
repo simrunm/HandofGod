@@ -9,6 +9,7 @@
 
 // uncomment to enable debug printing
 #define DEBUG
+#define DEBUG_PRINT
 
 // command definitions
 // bitmasks for commands
@@ -260,16 +261,16 @@ void move(float x_target, float y_target){
   digitalWrite(A0, LOW);
   #endif
   // swap x direction
-  x_target = -x_target;
+  x_target = x_target;
 
   // prevent from crashing gantry
-  if (x_target < -max_gantry_x)
-    x_target = -max_gantry_x;
+  if (x_target > max_gantry_x)
+    x_target = max_gantry_x;
   if (y_target > max_gantry_y)
     y_target = max_gantry_y;
   
   // calculate distance in mm
-  float dx = x_target - x;
+  float dx = -(x_target - x);
   float dy = y_target - y;
 
   // calculate steps needed to turn by each motor
@@ -277,11 +278,13 @@ void move(float x_target, float y_target){
   long y_steps = dy * (1/(spool_diameter*3.14)) * (steps_per_rotation);
 
   long steps_T = -(y_steps);
-  long steps_L = x_steps + y_steps;
+  long steps_L = -(x_steps + y_steps);
   long steps_R = -(x_steps - y_steps);
 
   #ifdef DEBUG_PRINT
   Serial.println("steps:");
+  Serial.println(x_steps);
+  Serial.println(y_steps);
   Serial.println(steps_T);
   Serial.println(steps_L);
   Serial.println(steps_R);
@@ -300,7 +303,8 @@ void move(float x_target, float y_target){
   
 }
 
-short x_command, y_command;
+short x_command = -1;
+short y_command = -1;
 
 
 void loop() {
@@ -364,16 +368,18 @@ void loop() {
 
   // hack to accommodate seprate packets for x and y
   // this can be done cleaner but it works
-  if (x_command && y_command) {
+  if (x_command != -1 && y_command != -1) {
     x_target = x_command;
     y_target = y_command;
+    // empty buffer
+    Serial.read();
     #ifdef DEBUG_PRINT
     Serial.println(x_target);
     Serial.println(y_target);
     #endif
     move(x_target,y_target);
-    x_command = 0;
-    y_command = 0;
+    x_command = -1;
+    y_command = -1;
   }
   
 }

@@ -1,6 +1,6 @@
 import serial
 from time import sleep
-from handOfGod import HandOfGod
+#from handOfGod import HandOfGod
 
 # quick sample for sending commands as binary to the arduino
 port = serial.Serial('/dev/ttyACM0', 115200);
@@ -18,6 +18,12 @@ opcodes = {
 
 def orbytes(abytes, bbytes):
   return bytes([int(a) | int(b) for a, b in zip(abytes[::-1], bbytes[::-1])][::-1])
+
+# example: command(opcodes["ZERO"], 100)
+def command(op, data):
+  data_bytes = data.to_bytes(2, 'little');
+  packet = orbytes(data_bytes, op);
+  port.write(packet);
 
 def send_position(x, y):
   # the arduino is little endian which makes byte stuff slightly unintuitive
@@ -49,14 +55,48 @@ def convert(x,y):
     print("converted x: ", x, "converted y: ", y)
     return y
 
-zero_packet = bytearray(b'\x00\x00')
-port.write(zero_packet)
-print(zero_packet.hex())
-print(zero_packet.decode('utf-8'))
-sleep(2)
+#zero_packet = bytearray(b'\x5a\x5a')
+#print(zero_packet.hex())
+#print(zero_packet.decode('utf-8'))
 #real_x,real_y = HandOfGod()
 #print("real_x: ", real_x, "real_y: ", real_y)
 # MoveMotors(arduino,(100,100)) # input the final x y 
 #print(real_x, convert(real_x, real_y))
 #send_position(int(real_x), int(convert(real_x, real_y))) # input the final x y 
-send_position(100,378)
+
+
+#port.write(bytearray(b'\x00'))
+#sleep(5)
+#send_position(1,1)
+#port.write(zero_packet)
+#sleep(15)
+#send_position(370,370)
+#sleep(5)
+#send_position(100,100)
+#sleep(5)
+#send_position(100, 370)
+max_x = 370
+max_y = 490
+#max_x = 200
+#max_y = 200
+
+half_x = max_x // 2;
+half_y = max_y // 2;
+if __name__ == "__main__":
+  send_position(0,0)
+  sleep(3)
+  send_position(half_x, half_y);
+  sleep(3)
+  send_position(max_x, max_y);
+  sleep(3)
+  send_position(half_x, half_y);
+  sleep(3)
+  send_position(0, max_y);
+  sleep(3)
+  send_position(half_x, half_y);
+  sleep(3)
+  send_position(max_x, 0);
+  sleep(3)
+  send_position(half_x, half_y);
+  sleep(3)
+  send_position(0, 0);

@@ -9,6 +9,7 @@
 
 // uncomment to enable debug printing
 #define DEBUG
+#define DEBUG_PRINT
 
 // command definitions
 // bitmasks for commands
@@ -166,7 +167,7 @@ void stop_y() {
 }
 
 void zero_x() {
-  #ifdef DEBUG
+  #ifdef DEBUG_PRINT
   Serial.println("Zeroing X");
   #endif
   x_zeroed = 0;
@@ -187,7 +188,7 @@ void zero_x() {
 }
 
 void zero_y() {
-  #ifdef DEBUG
+  #ifdef DEBUG_PRINT
   Serial.println("Zeroing Y");
   #endif
   y_zeroed = 0;
@@ -214,6 +215,40 @@ void clear_motors(){
   digitalWrite(LEFT_MOTOR_STEP, LOW);
   digitalWrite(RIGHT_MOTOR_STEP, LOW);
   digitalWrite(TOP_MOTOR_STEP, LOW);
+}
+
+void tension_dir(char op,short steps) {
+  for (int i = 0; i < steps; i++) {
+    switch(op) {
+      case C_TENSION_X_P:
+        digitalWrite(LEFT_MOTOR_DIR, LEFT_MOTOR_IN);
+        digitalWrite(LEFT_MOTOR_STEP, HIGH);
+        digitalWrite(LEFT_MOTOR_STEP, LOW);
+        break;
+      case C_TENSION_Y_P:
+        digitalWrite(TOP_MOTOR_DIR, TOP_MOTOR_IN);
+        digitalWrite(TOP_MOTOR_STEP, HIGH);
+        digitalWrite(TOP_MOTOR_STEP, LOW);
+        break;
+      case C_TENSION_X_N:
+        digitalWrite(RIGHT_MOTOR_DIR, RIGHT_MOTOR_IN);
+        digitalWrite(RIGHT_MOTOR_STEP, HIGH);
+        digitalWrite(RIGHT_MOTOR_STEP, LOW);
+        break;
+      case C_TENSION_Y_N:
+        digitalWrite(RIGHT_MOTOR_DIR, RIGHT_MOTOR_IN);
+        digitalWrite(LEFT_MOTOR_DIR, LEFT_MOTOR_IN);
+        digitalWrite(RIGHT_MOTOR_STEP, HIGH);
+        digitalWrite(LEFT_MOTOR_STEP, HIGH);
+        digitalWrite(RIGHT_MOTOR_STEP, LOW);
+        digitalWrite(LEFT_MOTOR_STEP, LOW);
+        break;
+      default:
+        break;
+      
+    }
+    delay(1000/(steps_per_rotation * zero_speed));
+  }
 }
 
 void tention(){
@@ -249,24 +284,27 @@ void zero_all(){
 
 
 void move(float x_target, float y_target){
-  #ifdef DEBUG
+  #ifdef DEBUG_PRINT
   Serial.println("move: ");
   Serial.println(x_target);
   Serial.println(y_target);
   Serial.println(x);
   Serial.println(y);
   #endif
+  #ifdef DEBUG
+  digitalWrite(A0, LOW);
+  #endif
   // swap x direction
-  x_target = -x_target;
+  x_target = x_target;
 
   // prevent from crashing gantry
-  if (x_target < -max_gantry_x)
-    x_target = -max_gantry_x;
+  if (x_target > max_gantry_x)
+    x_target = max_gantry_x;
   if (y_target > max_gantry_y)
     y_target = max_gantry_y;
   
   // calculate distance in mm
-  float dx = x_target - x;
+  float dx = -(x_target - x);
   float dy = y_target - y;
 
   // calculate steps needed to turn by each motor
@@ -277,8 +315,10 @@ void move(float x_target, float y_target){
   long steps_L = -(x_steps + y_steps);
   long steps_R = -(x_steps - y_steps);
 
-  #ifdef DEBUG
+  #ifdef DEBUG_PRINT
   Serial.println("steps:");
+  Serial.println(x_steps);
+  Serial.println(y_steps);
   Serial.println(steps_T);
   Serial.println(steps_L);
   Serial.println(steps_R);
@@ -290,10 +330,15 @@ void move(float x_target, float y_target){
   tention();
   x = x_target;
   y = y_target;
+
+  #ifdef DEBUG
+  digitalWrite(A0, HIGH);
+  #endif
   
 }
 
-short x_command, y_command;
+short x_command = -1;
+short y_command = -1;
 
 
 void loop() {
@@ -301,7 +346,7 @@ void loop() {
   bytes = Serial.available();
   if (bytes == 2) {
     #ifdef DEBUG
-    digitalWrite(A0, LOW);
+    digitalWrite(A2, LOW);
     #endif
     // read a command into the buffer
     Serial.readBytes((char*)&buffer, 2);
@@ -314,19 +359,17 @@ void loop() {
     }
     switch (opcode) {
       case (C_ZERO):
-        #ifdef DEBUG
+        #ifdef DEBUG_PRINT
         Serial.println("ZEROING");
         #endif
         zero_all();
         zeroed = true;
         break;
       case (C_TENSION_X_P):
-        break;
       case (C_TENSION_X_N):
-        break;
       case (C_TENSION_Y_P):
-        break;
       case (C_TENSION_Y_N):
+        tension_dir(opcode, data);
         break;
       case (C_MOVE_X):
         x_command = data;
@@ -340,32 +383,35 @@ void loop() {
         // unused opcode
         break;
     }
-    #ifdef DEBUG
+    #ifdef DEBUG_PRINT
     Serial.println("New command:");
     Serial.println(String((int)opcode, HEX));
     Serial.println(String((int)data));
     Serial.println(String(buffer, HEX));
+    digitalWrite(A2, HIGH);
     #endif
   } else if (bytes > 2) {
     // check if this error mode ever occurs, might be unnecessary!
     Serial.read();
-    #ifdef DEBUG
+    #ifdef DEBUG_PRINT
     Serial.println("ERROR: READ > 2 BYTES");
     #endif
   }
 
   // hack to accommodate seprate packets for x and y
   // this can be done cleaner but it works
-  if (x_command && y_command) {
+  if (x_command != -1 && y_command != -1) {
     x_target = x_command;
     y_target = y_command;
-    #ifdef DEBUG
+    // empty buffer
+    Serial.read();
+    #ifdef DEBUG_PRINT
     Serial.println(x_target);
     Serial.println(y_target);
     #endif
     move(x_target,y_target);
-    x_command = 0;
-    y_command = 0;
+    x_command = -1;
+    y_command = -1;
   }
   
 }

@@ -52,7 +52,7 @@ def HandOfGod():
     u_b_tape=np.array([180, 220, 220])
     real_dist = 610 # real life length between pink tape
     calibration_ratio = 1.789 #1.713
-    y_val = 236 #397.5
+    y_val = 265 #364.5 #397.5
     cam_dist = 1516-(610+270)
     timestamp_sideview_centroid_x = []
     previous_pred = (185,205)
@@ -95,7 +95,7 @@ def HandOfGod():
         if (do_fit):
             # SIDEVIEW -------------------------------------------------------------------
 
-            if len(sideview_centroid_x) >=8:
+            if len(sideview_centroid_x) >= 10:
                 # start_time.append(time.time())              
                 x_list = np.array(sideview_centroid_x); y_list = np.array(sideview_centroid_y)
                 fit_params, pcov = scipy.optimize.curve_fit(calculateBallPath.parabola, x_list,y_list)
@@ -131,15 +131,14 @@ def HandOfGod():
         # Plotting all the calculated points and finding the x and y coordinates
         # SIDEVIEW -----------------------------------------------------------------
         if (show_side_fit):            
-            for i in range(300, 600):
+            for i in range(300):
                 if y_val - 5 < sideview_ypos[i] < y_val + 5:
                     cv2.circle(sideview_frame, (int(sideview_xpos[i]), int(sideview_ypos[i])),2,(255,0,0),-1)
-                    print("frame x: ", sideview_xpos[i])
-                    real_side_x = (abs(sideview_xpos[i] - 412) * 410) / (520 - 412)# the side coordinate converted into real distances
-                    print("gantry: ", real_side_x)
-                    predicted_landing_poses.append(real_side_x)
+                    real_side_x = sideview_xpos[i]*calibration_ratio # the side coordinate converted into real distances
+                    # print("side x real distance: ", real_side_x)
+                    predicted_landing_poses.append(sideview_xpos[i])
                 # Plotting all the points parabola points that are not the end coordinate
-                else:
+                else:   
                     if not math.isnan(sideview_xpos[i]):        
                         cv2.circle(sideview_frame, (int(sideview_xpos[i]), int(sideview_ypos[i])),2,(0,255,0),-1)
         
@@ -163,7 +162,7 @@ def HandOfGod():
                     #     previous_prediction = real_side_x
                     #     current_roc = roc
                     
-
+                
         # TOPVIEW --------------------------------------------------------------------------------------
         if (show_top_fit):
             for i in range(len(topview_xpos)):          
@@ -175,12 +174,10 @@ def HandOfGod():
         if(find_theta):
             theta = trackingFunctions.finding_theta(vert_x,3*height/4,m,b,topview_centroid_y[0]) # centroid_y[0] is the intersection of the two lines  
             if(found_distance): # if program has determined target x and y
-                most_recent_prediction = predicted_landing_poses[-1]
-                top_x = trackingFunctions.find_x(theta, most_recent_prediction, cam_dist) # top x is x and side x is y from drawing      
-                print("post conversion x: ", top_x, "y: ", most_recent_prediction)
-                MoveMotors(arduino, (int(most_recent_prediction), 100))
+                top_x = trackingFunctions.find_x(theta, predicted_landing_poses[-1], cam_dist) # top x is x and side x is y from drawing      
+                print("x: ", top_x, "y: ", predicted_landing_poses[-1])
                 # MoveMotors(arduino, convert(top_x, predicted_landing_poses[-1]))
-                return True
+                # return True
            
         # KEYBOARD COMMANDS
         if key==ord('a'):
@@ -200,11 +197,8 @@ def HandOfGod():
             topview_centroid_x = []
             topview_centroid_y = []
             show_top_fit = False
-            show_side_fit= False
             find_theta = False
             show_vertical_line = False
-        if key==ord('p'):
-            print("x: ", sideview_centroid_x[-1], "y: ", sideview_centroid_y[-1])
 
         if key==ord('q'):
             break
@@ -224,7 +218,6 @@ def convert(x,y):
     gantry dimensions:
     370, 410 origin in bottom right corner
     460mm, 500mm
-    412, 468, 520
 
     distance from sideframe edge to gantry 1516
     """
@@ -241,8 +234,4 @@ def convert(x,y):
 def distance_between(prev, current):
     return math.sqrt((current[1]-prev[1])**2 + (current[0]-prev[0])**2)
 
-arduino = InitializeSerial()
-ZeroGantry(arduino)
-# MoveMotors(arduino, (50,150))
-# CenterGantry(arduino)
 HandOfGod()

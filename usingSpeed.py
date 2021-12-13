@@ -13,6 +13,8 @@ from firmware import InitializeSerial
 from firmware import MoveMotors
 from firmware import CenterGantry
 from firmware import ZeroGantry
+import cmath
+import types
 
 def HandOfGod():
     # Windows Config
@@ -52,9 +54,10 @@ def HandOfGod():
     u_b_tape=np.array([180, 220, 220])
     real_dist = 610 # real life length between pink tape
     calibration_ratio = 1.789 #1.713
-    y_val = 236 #397.5
+    y_val = 364.5 #397.5
     cam_dist = 1516-(610+270)
-    timestamp_sideview_centroid_x = []
+    timestamp_sideview_centroid = []    
+
     previous_pred = (185,205)
     # start_time = []
     roc = 0
@@ -77,8 +80,7 @@ def HandOfGod():
         if not blobFound or np.allclose(x, 0, atol=0.25) or np.allclose(y, 0, atol=0.25):
             pass
         else:
-                   
-
+            timestamp_sideview_centroid.append(time.time())    
             sideview_centroid_x.append(x)
             sideview_centroid_y.append(y)
         trackingFunctions.plot_points(sideview_centroid_x, sideview_centroid_y, sideview_frame)
@@ -95,26 +97,26 @@ def HandOfGod():
         if (do_fit):
             # SIDEVIEW -------------------------------------------------------------------
 
-            if len(sideview_centroid_x) >=8:
-                # start_time.append(time.time())              
-                x_list = np.array(sideview_centroid_x); y_list = np.array(sideview_centroid_y)
-                fit_params, pcov = scipy.optimize.curve_fit(calculateBallPath.parabola, x_list,y_list)
-                y_fit = calculateBallPath.parabola(x_list, *fit_params)
-                length_centroid = len(x_list//2)
+            if len(sideview_centroid_x) >=2:
+                print("change in time: ", timestamp_sideview_centroid[1] - timestamp_sideview_centroid[0] )
+                print(sideview_centroid_x[1])
+                v_x = (sideview_centroid_x[1] - sideview_centroid_x[0]) / (timestamp_sideview_centroid[1] - timestamp_sideview_centroid[0])      
+                v_y = ((height-sideview_centroid_y[1]) - (height-sideview_centroid_y[0])) / (timestamp_sideview_centroid[1] - timestamp_sideview_centroid[0])
+                print("v_x: ", v_x)
+                print("v_y: ", v_y)
+                print("initial y : ", sideview_centroid_y[0])
+                sol1,sol2 = quadratic(-0.5*9.8, v_y, height-sideview_centroid_y[0] - (height - y_val))
+                print("sol1: ", sol1, "sol2: ", sol2)
+                if sol1 > 0:
+                    x_t = v_x * sol1
+                elif sol2 > 0:
+                    x_t = v_x * sol2
+                print(x_t)
+                frame_x = x_t + sideview_centroid_x[0]
                 
-                # OTHER THING TO TRY OUT-----------------------------------
-                len_centroid_x = len(sideview_centroid_x)
-                x1, x2, x3, y1, y2, y3 = sideview_centroid_x[0], sideview_centroid_x[len_centroid_x//2], sideview_centroid_x[-1], sideview_centroid_y[0], sideview_centroid_y[len_centroid_x//2], sideview_centroid_y[-1]
-                # -----------------------------------
-                # x1, x2, x3, y1, y2, y3 = x_list[0], x_list[length_centroid//2], x_list[length_centroid - 1], y_fit[0], y_fit[length_centroid//2], y_fit[length_centroid - 1]            
-                
-                denom = (x1-x2) * (x1-x3) * (x2-x3)
-                if not np.allclose(denom, 0, atol=0.25):
-                    a,b,c = calculateBallPath.calc_parabola_vertex(x1, x2, x3, y1, y2, y3)        
-                    # checking to see if it calculated a long parabola
-                    
-                    [sideview_xpos,sideview_ypos] = calculateBallPath.find_parabola(a,b,c)
-                    show_side_fit = True
+            # SIDEVIEW -------------------------------------------------------------------
+          
+              
         
             # # TOPVIEW -------------------------------------------------------------------------------------------------       
             if len(topview_centroid_x) == 1:
@@ -128,42 +130,7 @@ def HandOfGod():
                     [topview_xpos,topview_ypos] = calculateBallPath.find_line(m,b)     
                     show_top_fit = True
 
-        # Plotting all the calculated points and finding the x and y coordinates
-        # SIDEVIEW -----------------------------------------------------------------
-        if (show_side_fit):            
-            for i in range(300, 600):
-                if y_val - 5 < sideview_ypos[i] < y_val + 5:
-                    cv2.circle(sideview_frame, (int(sideview_xpos[i]), int(sideview_ypos[i])),2,(255,0,0),-1)
-                    print("frame x: ", sideview_xpos[i])
-                    real_side_x = (abs(sideview_xpos[i] - 412) * 410) / (520 - 412)# the side coordinate converted into real distances
-                    print("gantry: ", real_side_x)
-                    predicted_landing_poses.append(real_side_x)
-                # Plotting all the points parabola points that are not the end coordinate
-                else:
-                    if not math.isnan(sideview_xpos[i]):        
-                        cv2.circle(sideview_frame, (int(sideview_xpos[i]), int(sideview_ypos[i])),2,(0,255,0),-1)
-        
-                    # if end time - start time is greater than two seconds, return last point
-                if len(predicted_landing_poses) != 0:
-                    # if -b/2*a > sideview_centroid_x[-1]:
-                    # return 100, predicted_landing_poses[-1])
-                    found_distance = True
-
-                    # if found_distance == False:
-                    # if predicted landing pose has converged
-                    # convergence_threshold = 30
-                    # if blobFound:
-                    #     roc = trackingFunctions.convergence_check(previous_prediction, real_side_x, current_time, blobFound)
-                    #     if (abs(current_roc-roc) < convergence_threshold):
-                    #         print("we have converged")
-                    #         return (100,real_side_x)
-                    # # if hasn't converged
-                    # else:
-                    #     current_time = time.time()
-                    #     previous_prediction = real_side_x
-                    #     current_roc = roc
-                    
-
+ 
         # TOPVIEW --------------------------------------------------------------------------------------
         if (show_top_fit):
             for i in range(len(topview_xpos)):          
@@ -175,11 +142,9 @@ def HandOfGod():
         if(find_theta):
             theta = trackingFunctions.finding_theta(vert_x,3*height/4,m,b,topview_centroid_y[0]) # centroid_y[0] is the intersection of the two lines  
             if(found_distance): # if program has determined target x and y
-                most_recent_prediction = predicted_landing_poses[-1]
-                top_x = trackingFunctions.find_x(theta, most_recent_prediction, cam_dist) # top x is x and side x is y from drawing      
-                print("post conversion x: ", top_x, "y: ", most_recent_prediction)
-                MoveMotors(arduino, (int(most_recent_prediction), 100))
-                # MoveMotors(arduino, convert(top_x, predicted_landing_poses[-1]))
+                top_x = trackingFunctions.find_x(theta, predicted_landing_poses[-1], cam_dist) # top x is x and side x is y from drawing      
+                print("xy: ", convert(top_x, frame_x))
+                MoveMotors(arduino, convert(top_x, frame_x))
                 return True
            
         # KEYBOARD COMMANDS
@@ -200,11 +165,8 @@ def HandOfGod():
             topview_centroid_x = []
             topview_centroid_y = []
             show_top_fit = False
-            show_side_fit= False
             find_theta = False
             show_vertical_line = False
-        if key==ord('p'):
-            print("x: ", sideview_centroid_x[-1], "y: ", sideview_centroid_y[-1])
 
         if key==ord('q'):
             break
@@ -224,7 +186,6 @@ def convert(x,y):
     gantry dimensions:
     370, 410 origin in bottom right corner
     460mm, 500mm
-    412, 468, 520
 
     distance from sideframe edge to gantry 1516
     """
@@ -241,8 +202,23 @@ def convert(x,y):
 def distance_between(prev, current):
     return math.sqrt((current[1]-prev[1])**2 + (current[0]-prev[0])**2)
 
+def quadratic(a, b, c):
+    # calculate the discriminant
+    d = (b**2) - (4*a*c)
+
+    # find two solutions
+    sol1 = (-b-cmath.sqrt(d))/(2*a)
+    sol2 = (-b+cmath.sqrt(d))/(2*a)
+    return sol1, sol2
+
+def find_real(sol1,sol2):
+    if isinstance(sol1, types.ComplexType):
+        return sol2
+    if isinstance(sol2, types.ComplexType):
+        return sol1
+    return "both complex"
+
 arduino = InitializeSerial()
 ZeroGantry(arduino)
-# MoveMotors(arduino, (50,150))
-# CenterGantry(arduino)
+CenterGantry(arduino)
 HandOfGod()

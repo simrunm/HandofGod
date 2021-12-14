@@ -125,11 +125,12 @@ def get_x_change(predicted_y, theta):
     at middle 205 gantry - 11 degrees is the furthest
     at the start 0 gantry - 13 degrees is teh furthest
     """
-    # 0 (predicted_y) -> 13 (angle_range)
-    # 410 (predicted_y) -> 9 (angle_range)
-    angle_range = predicted_y * ((9-13)/410) + 13
-    # -angle_range -> 370
-    # angle_range -> 0
-    x_change = (370*theta)/(2*angle_range)
+    # # 0 (predicted_y) -> 13 (angle_range)
+    # # 410 (predicted_y) -> 9 (angle_range)
+    # angle_range = predicted_y * ((9-13)/410) + 13
+    # # -angle_range -> 370
+    # # angle_range -> 0
+    # x_change = (370*theta)/(2*angle_range)
+    # return x_change
+    x_change = theta*2
     return x_change
-

@@ -105,3 +105,32 @@ def roc_convergence_check(current_roc, new_roc, current_time):
     rorochange = abs(new_roc-current_roc)/(new_time-current_time)
     print("rate of rate of change: ", rorochange, end='\n\n')
     return rorochange
+
+def finding_x_int(height, theta):
+    if theta < 0 : # going right
+        return height * 0.7273 + 249.36
+    return height * -0.7273 + 249.36
+
+def find_gradient(height):
+    return -0.0044 *  height + 1.4102
+
+def finding_x_start(x_int, x_frame, gradient):
+    # x_start = x_int + (x_frame - x_int) * gradient
+    x_start = x_frame * 370/640
+    return x_start
+
+def get_x_change(predicted_y, theta):
+    """
+    at 410 gantry y- 9 degrees is the furthest point
+    at middle 205 gantry - 11 degrees is the furthest
+    at the start 0 gantry - 13 degrees is teh furthest
+    """
+    # # 0 (predicted_y) -> 13 (angle_range)
+    # # 410 (predicted_y) -> 9 (angle_range)
+    # angle_range = predicted_y * ((9-13)/410) + 13
+    # # -angle_range -> 370
+    # # angle_range -> 0
+    # x_change = (370*theta)/(2*angle_range)
+    # return x_change
+    x_change = theta*2
+    return x_change

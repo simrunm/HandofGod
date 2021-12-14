@@ -80,11 +80,11 @@ def MoveMotors(arduino, location: tuple):
 def ZeroGantry(arduino):
     # the zero command is just two bytes of 0s
     arduino.write(bytearray(b'\x00\x00'))
-    time.sleep(6)
+    time.sleep(8)
     print('Axis zeroed')
     
 def CenterGantry(arduino):
     # moves it to the center
     MoveMotors(arduino,(185,205))
-    time.sleep(1)
+    time.sleep(5)
     print('Gantry centered')

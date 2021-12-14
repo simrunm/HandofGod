@@ -40,21 +40,21 @@
 			<!-- Main -->
 				<section id="main" class="container">
 					<header>
-						<h2>Generic</h2>
-						<p>A generic page for every non-generic situation.</p>
+						<h2>Electrical System</h2>
+						<p><em>Shockingly</em> fast.</p>
 					</header>
 					<div class="box">
-						<span class="image featured"><img src="images/pic01.jpg" alt="" /></span>
-						<h3>This is a subheading</h3>
-						<p>Cep risus aliquam gravida cep ut lacus amet. Adipiscing faucibus nunc placerat. Tempus adipiscing turpis non blandit accumsan eget lacinia nunc integer interdum amet aliquam ut orci non col ut ut praesent. Semper amet interdum mi. Phasellus enim laoreet ac ac commodo faucibus faucibus. Curae ante vestibulum ante. Blandit. Ante accumsan nisi eu placerat gravida placerat adipiscing in risus fusce vitae ac mi accumsan nunc in accumsan tempor blandit aliquet aliquet lobortis. Ultricies blandit lobortis praesent turpis. Adipiscing accumsan adipiscing adipiscing ac lacinia cep. Orci blandit a iaculis adipiscing ac. Vivamus ornare laoreet odio vis praesent nunc lorem mi. Erat. Tempus sem faucibus ac id. Vis in blandit. Nascetur ultricies blandit ac. Arcu aliquam. Accumsan mi eget adipiscing nulla. Non vestibulum ac interdum condimentum semper commodo massa arcu.</p>
+						<span class="image featured"><img src="images/electrical.jpg" alt="" /></span>
+						<p>Where every other aspect of our project was novel and posed unique challenges, we went with a proven approach for the electrical system as to not needlessly cause ourselves trouble. Even then, we had to evaluate multiple options before coming to our final solution.</p>
 						<div class="row">
 							<div class="row-6 row-12-mobilep">
-								<h3>And now a subheading</h3>
-								<p>Adipiscing faucibus nunc placerat. Tempus adipiscing turpis non blandit accumsan eget lacinia nunc integer interdum amet aliquam ut orci non col ut ut praesent. Semper amet interdum mi. Phasellus enim laoreet ac ac commodo faucibus faucibus. Curae lorem ipsum adipiscing ac. Vivamus ornare laoreet odio vis praesent.</p>
+								<h3>Exploration</h3>
+								<p>We initially experimented using H-Bridges instead of stepper drivers. While this was sufficient for completing sprint one, we realized that the overhead of controlling using an H-Bridge instead of a dedicated driver would result in lower speeds and limit the libraries available to us. Moving into sprint two, we explored using an off the shelf RAMPS shield on an arduino designed for CNCs and 3D printers. Unfortunately, either due to negligence or poor quality, we could not get the shield to work and burned out the drivers in the process.</p>
+								<p>We were convinced stepper drivers were the right solution space, so we purchased new drivers and ditched the shield for our own control circuitry. The drivers have a simple two pin interface, which makes hooking them up to the Arduino GPIO straightforward. At this point, we were able to crimp together some extension cables and start driving the gantry.</p>
 							</div>
 							<div class="row-6 row-12-mobilep">
-								<h3>And another subheading</h3>
-								<p>Adipiscing faucibus nunc placerat. Tempus adipiscing turpis non blandit accumsan eget lacinia nunc integer interdum amet aliquam ut orci non col ut ut praesent. Semper amet interdum mi. Phasellus enim laoreet ac ac commodo faucibus faucibus. Curae lorem ipsum adipiscing ac. Vivamus ornare laoreet odio vis praesent.</p>
+								<h3>Final System</h3>
+								<p>Our electrical system also includes two mechanical endstops placed at y=0 and x=0. These are connected to the hardware interrupt pins for use during zeroing and powered by the logic rail. All of the stepper drivers are configured the same except for the GPIO pins controlling them. They receive power from the logic rail (5V) and then motor rail (12-32V). ~ENABLE is pulled low to keep them enabled and microstepping is not configured as we care more about speed than ultra precise motion. We initially used 12V for the motor rail, but as we neared the speeds we were hoping for the steppers began to slip as soon as there was any load. After some research, we learned that increasing the motor voltage will increase torque allowing for higher speeds. Based on this, we switched to a 32V power supply as it is still safely within the 35V the drivers are rated for. When we revisited the datasheet was also added the suggest 47uF-100uF smoothing capacitor in the form of 5 100uF electrolytic capacitors to protect the power supply from current spikes.</p>
 							</div>
 						</div>
 					</div>

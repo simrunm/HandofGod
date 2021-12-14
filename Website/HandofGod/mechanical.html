@@ -40,23 +40,49 @@
 			<!-- Main -->
 				<section id="main" class="container">
 					<header>
-						<h2>Generic</h2>
-						<p>A generic page for every non-generic situation.</p>
+						<h2>Mechanical Design</h2>
+						<p>A minimalist cable driven gantry system designed for speed.</p>
 					</header>
 					<div class="box">
-						<span class="image featured"><img src="images/pic01.jpg" alt="" /></span>
-						<h3>This is a subheading</h3>
-						<p>Cep risus aliquam gravida cep ut lacus amet. Adipiscing faucibus nunc placerat. Tempus adipiscing turpis non blandit accumsan eget lacinia nunc integer interdum amet aliquam ut orci non col ut ut praesent. Semper amet interdum mi. Phasellus enim laoreet ac ac commodo faucibus faucibus. Curae ante vestibulum ante. Blandit. Ante accumsan nisi eu placerat gravida placerat adipiscing in risus fusce vitae ac mi accumsan nunc in accumsan tempor blandit aliquet aliquet lobortis. Ultricies blandit lobortis praesent turpis. Adipiscing accumsan adipiscing adipiscing ac lacinia cep. Orci blandit a iaculis adipiscing ac. Vivamus ornare laoreet odio vis praesent nunc lorem mi. Erat. Tempus sem faucibus ac id. Vis in blandit. Nascetur ultricies blandit ac. Arcu aliquam. Accumsan mi eget adipiscing nulla. Non vestibulum ac interdum condimentum semper commodo massa arcu.</p>
-						<div class="row">
-							<div class="row-6 row-12-mobilep">
-								<h3>And now a subheading</h3>
-								<p>Adipiscing faucibus nunc placerat. Tempus adipiscing turpis non blandit accumsan eget lacinia nunc integer interdum amet aliquam ut orci non col ut ut praesent. Semper amet interdum mi. Phasellus enim laoreet ac ac commodo faucibus faucibus. Curae lorem ipsum adipiscing ac. Vivamus ornare laoreet odio vis praesent.</p>
-							</div>
-							<div class="row-6 row-12-mobilep">
-								<h3>And another subheading</h3>
-								<p>Adipiscing faucibus nunc placerat. Tempus adipiscing turpis non blandit accumsan eget lacinia nunc integer interdum amet aliquam ut orci non col ut ut praesent. Semper amet interdum mi. Phasellus enim laoreet ac ac commodo faucibus faucibus. Curae lorem ipsum adipiscing ac. Vivamus ornare laoreet odio vis praesent.</p>
-							</div>
-						</div>
+						<span class="image featured"><img src="images/gantry_render_top.PNG" alt="" /></span>
+						<video width="900" height="480" controls>
+							<source src="images/gantry_demo.mp4" type="video/mp4">
+							
+						  Your browser does not support the video tag.
+						  </video>
+						<h3>About</h3>
+						<p>
+							We had two primary goals when designing this gantry. The first was that the gantry should be as fast as possble.
+							We needed the gantry to be able to move the hand to any spot on our board within a fraction of a second. The second 
+							goal was that the gantry should be mechanically simple. First of all, none of us were particulalry excited about working
+							on the mechanical design, and secondly, the simpler the design, the faster it would be to iterate and make design improvements.
+						</p>
+							
+						<p>
+							We decided to use a rather unorthadox gantry system design to achieve these two goals. Rather than using belts to drive our gantry, 
+							we decided to use a set of cables. One benefit of this design is that we are able to minimize the weight that sits on the rails. With
+							a belt driven gantry system, often, a stepper motor is mounted onto the cross axis. With this system, we the only weight that sits on 
+							any of the rails is the hand. This allows us to accelearte the gantry at a faster rate. Another benefit of this design is that it is mechanically
+							very simple. The last benefit is that we can increase the speed of the gantry very easily. If we want to increase the overall speed of the gantry,
+							we can simple use larger spools to draw in and out cables. All we would need to do is print a new set of spools and pop them onto the motors; we
+							do not need to modify the gantry or cables at all. 
+
+						</p>
+						<p>
+							There are a few major drawbacks to this gantry setup. For one, the gantry is a contrained system. Unlike a traditional belt driven gantry,
+							not every combination of motor movements are valid. Each motor has to move in perfect sync with the other motors for the gantry to move. If
+							each motor is not in sync, the motors will begin to skip steps and we lose positional accuracy. Another drawback is that cables are inherently
+							difficult to work with. They become easily tangles, and they often lose tension. With a belt driven system, the belts are always tentioned. In 
+							this system, you are rellying on the motion of other motors to perfectly pick up the tention of every other motors. The last drawback of this setup
+							is that it requires more stepper motors that a traditional setup.
+						</p>
+
+						<p>
+							In the end, we decided that the benefits of this system outweight the drawbacks. For one, we had no shortage of stepper motors, so that was not an issue for us.
+							Secondly, given that our motors are only moving in a single short burst, we were not concerend with the motors losing positional accuracy over time due to
+							the cables gradually losing tention or slipping. While the math to drive this sytem is slightly more dificult than a traditional setup, it isn't too dificult. 
+							Lastly, and most importantly, this sytem simply allowed us the greatest travel speed, which was our primary goal. 
+						</p>
 					</div>
 				</section>
 
